@@ -33,7 +33,7 @@ void Decabot::boot(){
 	resetMotors();
 	whoami();
 	output(F("READY!"));
-	soundBegin();
+	soundBoot();
 }
 
 void Decabot::resetMotors() {
@@ -124,7 +124,7 @@ void Decabot::output(String message) {
 	//User must start serial in setup() to work
 	String msg = "";
 	msg.concat(String(millis()/1000.0,2));
-	msg.concat(F(">"));
+	msg.concat(F("\t"));
 	msg.concat(message);
 	Serial.println(msg);
 }
@@ -136,7 +136,7 @@ void Decabot::beep(int time){
 	delay(time);
 }
 
-void Decabot::soundBegin() {
+void Decabot::soundBoot() {
 	digitalWrite(ledPin, HIGH);
 	for(int i=400;i<1000;i++){
 		tone(buzzerPin, i, 3);
@@ -150,7 +150,8 @@ void Decabot::soundBegin() {
 	digitalWrite(ledPin, LOW);
 }
 
-void Decabot::soundAfirmative() {
+void Decabot::soundBegin() {
+	output(F("Start!"));
 	tone(buzzerPin, 440, 200);
 	delay(200);
 	tone(buzzerPin, 494, 200);
@@ -161,6 +162,7 @@ void Decabot::soundAfirmative() {
 }
 
 void Decabot::soundEnd() {
+	output(F("End!"));
 	tone(buzzerPin, 440, 50);
 	delay(50);
 	tone(buzzerPin, 494, 50);
@@ -205,22 +207,35 @@ void Decabot::oneRight(int dir) {
 }
 
 void Decabot::move(int distance, int leftDirection, int RightDirection){
-      for(int i=0;i<distance;i++){
-        oneLeft(leftDirection);
-        oneRight(RightDirection);
-	updateMotors();
-        delay(millisDelay);
-      }
+	for(int i=0;i<distance;i++){
+		oneLeft(leftDirection);
+		oneRight(RightDirection);
+		updateMotors();
+		delay(millisDelay);
+	}
+	updateMotors(B00000000);
 }
 
 void Decabot::forward(int centimeters){
+	String msg = F("Going forward ");
+	msg.concat(centimeters);
+	msg.concat(F("cm"));
+	output(msg);
 	move(centimeters * 100,1,1);
 }
 
 void Decabot::left(int degrees){
+	String msg = F("Turning left ");
+	msg.concat(degrees);
+	msg.concat(F("°"));
+	output(msg);
 	move(degrees * 7.8,1,0);
 }
 
 void Decabot::right(int degrees){
+	String msg = F("Turning right ");
+	msg.concat(degrees);
+	msg.concat(F("°"));
+	output(msg);
 	move(degrees * 7.8,0,1);
 }

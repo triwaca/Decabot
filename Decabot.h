@@ -27,7 +27,7 @@ class Decabot
 		void output(String message);
 		void beep(int time);
 		void soundBegin();
-		void soundAfirmative();
+		void soundBoot();
 		void soundEnd();
 		void soundRecording();
 		void oneLeft(int dir);
