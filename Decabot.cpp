@@ -1,52 +1,121 @@
 /*
-  Test.h - Test library for Wiring - implementation
-  Copyright (c) 2006 John Doe.  All right reserved.
+  Decabot.h
+  Daniel Chagas
 */
 
-// include core Wiring API
-#include "WProgram.h"
 
-// include this library's description file
-#include "Test.h"
+#include"Decabot.h"
 
-// include description files for other libraries used (if any)
-#include "HardwareSerial.h"
-
-// Constructor /////////////////////////////////////////////////////////////////
-// Function that handles the creation and setup of instances
-
-Test::Test(int givenValue)
+Decabot::Decabot(int nothing) 
 {
-  // initialize this instance's variables
-  value = givenValue;
-
-  // do whatever is required to initialize the library
-  pinMode(13, OUTPUT);
-  Serial.begin(9600);
+	//define pin modes for shift register, buzzer and LED
+	pinMode(buzzerPin, OUTPUT);
+	pinMode(ledPin, OUTPUT);
+	pinMode(latchPin, OUTPUT);
+	pinMode(clockPin, OUTPUT);
+	pinMode(dataPin, OUTPUT);
 }
 
-// Public Methods //////////////////////////////////////////////////////////////
-// Functions available in Wiring sketches, this library, and other libraries
-
-void Test::doSomething(void)
+Decabot::~Decabot() 
 {
-  // eventhough this function is public, it can access
-  // and modify this library's private variables
-  Serial.print("value is ");
-  Serial.println(value);
-
-  // it can also call private functions of this library
-  doSomethingSecret();
+	//define pin modes for shift register, buzzer and LED
+	pinMode(buzzerPin, OUTPUT);
+	pinMode(ledPin, OUTPUT);
+	pinMode(latchPin, OUTPUT);
+	pinMode(clockPin, OUTPUT);
+	pinMode(dataPin, OUTPUT);
 }
 
-// Private Methods /////////////////////////////////////////////////////////////
-// Functions only available to other functions in this library
+void Decabot::boot(){
+	//Boot sequence
+	output(F("Initializing Decabot..."));
+	resetMotor();
+	whoami();
+	output(F("READY!"));
+	soundBegin();
+}
 
-void Test::doSomethingSecret(void)
-{
-  digitalWrite(13, HIGH);
-  delay(200);
-  digitalWrite(13, LOW);
-  delay(200);
+void Decabot::resetMotor() {
+	digitalWrite(latchPin, LOW);
+	shiftOut(dataPin, clockPin, MSBFIRST, B00000000); //Send all off to 74HC595
+	digitalWrite(latchPin, HIGH);
+	output(F("Reset motors"));
+}
+
+void Decabot::whoami() {
+      //OUtputs tag name and owner e-mail of Decabot
+      UniqueIDdump(Serial);
+      String tmp1 = F("Decabot Name: ");
+      for(int i=896;i<=900;i++){
+        tmp1.concat((char) EEPROM.read(i));
+        decabotName[i - 896] = EEPROM.read(i);
+      }
+      output(tmp1);
+      String tmp2 = F("Owner: ");
+      for(int i=901;i<950;i++){
+        tmp2.concat((char) EEPROM.read(i));
+      }
+      output(tmp2);
+}
+
+void Decabot::yourNameIs(String parameter){
+      //change Decabot's tag name on EEPROM
+      recordingSound();
+      parameter.toCharArray(decabotName,6);
+      for(int i=0;i<=5;i++){
+        EEPROM.write(i + 896,decabotName[i]);
+      }
+      output(F("new name:"));
+      output(decabotName);
+}
+
+void Decabot::yourOwnerIs(String parameter){
+      //change decabot emails owner on EEPROM
+      recordingSound();
+      parameter.toCharArray(decabotOwner,50);
+      for(int i=0;i<=50;i++){
+        EEPROM.write(i + 902,decabotOwner[i]);
+      }
+      output(F("Decabot owner: "));
+      output(decabotOwner);
+}
+
+void Decabot::output(String message) {
+	//Terminal-like output, with timestamp
+	//User must start serial in setup() to work
+	String msg = "";
+	msg.concat(String(millis()/1000.0,2));
+	msg.concat(F(">"));
+	msg.concat(message);
+	Serial.println(msg);
+}
+
+void Decabot::beep(int time){
+	tone(buzzerPin, 1000, 50);
+	delay(time);
+	noTone(buzzerPin);
+	delay(time);
+}
+
+void Decabot::soundBegin() {
+      digitalWrite(ledPin, HIGH);
+      for(int i=400;i<1000;i++){
+        tone(buzzerPin, i, 3);
+        delay(3);
+      }
+      noTone(buzzerPin);
+      delay(50);
+      beep(50);
+      delay(50);
+      beep(50);
+      digitalWrite(ledPin, LOW);
+}
+
+void Decabot::recordingSound() {
+      //sound played everytime something is recorded in EEPROM
+      for(int x=0;x<3;x++){
+        beep(50);
+        delay(50);
+      }
 }
 

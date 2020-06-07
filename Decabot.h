@@ -1,27 +1,41 @@
 /*
-  Test.h - Test library for Wiring - description
-  Copyright (c) 2006 John Doe.  All right reserved.
+  Decabot.h
+  Daniel Chagas
 */
 
 // ensure this library description is only included once
-#ifndef Test_h
-#define Test_h
+#ifndef DECABOT_H
+#define DECABOT_H
 
-// include types & constants of Wiring core API
-#include "WConstants.h"
+#include <Arduino.h>
+#include <EEPROM.h>
+#include <ArduinoUniqueID.h>
 
 // library interface description
-class Test
+class Decabot
 {
-  // user-accessible "public" interface
-  public:
-    Test(int);
-    void doSomething(void);
+	public:
+		Decabot(int nothing);
+		~Decabot();
+		void boot();
+		void resetMotor();
+		void whoami();
+		void yourNameIs(String parameter);
+		void yourOwnerIs(String parameter);
+		void output(String message);
+		void beep(int time);
+		void soundBegin();
+		void recordingSound();
 
-  // library-accessible "private" interface
-  private:
-    int value;
-    void doSomethingSecret(void);
+	private:
+		int latchPin = 8; //Pin connected to ST_CP of 74HC595
+		int clockPin = 7; //Pin connected to SH_CP of 74HC595
+		int dataPin = 6; //Pin connected to DS of 74HC595
+		int buzzerPin = 3; //Pin connected to buzzer
+		int ledPin = 2; //Pin connected to frontal LED
+		char decabotName[5] = "A01  ";
+		char decabotOwner[50] = "anybody@decabot.com";
+    
 };
 
 #endif
