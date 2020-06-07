@@ -6,13 +6,32 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-Test	KEYWORD1
+Decabot	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-doSomething	KEYWORD2
+
+boot	KEYWORD2
+resetMotors	KEYWORD2
+updateMotors	KEYWORD2
+updateMotors	KEYWORD2
+whoami	KEYWORD2
+yourNameIs	KEYWORD2
+yourOwnerIs	KEYWORD2
+output	KEYWORD2
+beep	KEYWORD2
+soundBegin	KEYWORD2
+soundBoot	KEYWORD2
+soundEnd	KEYWORD2
+soundRecording	KEYWORD2
+oneLeft	KEYWORD2
+oneRight	KEYWORD2
+move	KEYWORD2
+forward	KEYWORD2
+left	KEYWORD2
+right	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
