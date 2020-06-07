@@ -27,13 +27,15 @@ class Decabot
 		void output(String message);
 		void beep(int time);
 		void soundBegin();
-		void recordingSound();
+		void soundAfirmative();
+		void soundEnd();
+		void soundRecording();
 		void oneLeft(int dir);
 		void oneRight(int dir);
 		void move(int distance, int leftDirection, int RightDirection);
-		void forward(int distance);
-		void left(int distance);
-		void right(int distance);
+		void forward(int centimeters);
+		void left(int degrees);
+		void right(int degrees);
 
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595

@@ -99,7 +99,7 @@ void Decabot::whoami() {
 
 void Decabot::yourNameIs(String parameter){
       //change Decabot's tag name on EEPROM
-      recordingSound();
+      soundRecording();
       parameter.toCharArray(decabotName,6);
       for(int i=0;i<=5;i++){
         EEPROM.write(i + 896,decabotName[i]);
@@ -110,7 +110,7 @@ void Decabot::yourNameIs(String parameter){
 
 void Decabot::yourOwnerIs(String parameter){
       //change decabot emails owner on EEPROM
-      recordingSound();
+      soundRecording();
       parameter.toCharArray(decabotOwner,50);
       for(int i=0;i<=50;i++){
         EEPROM.write(i + 902,decabotOwner[i]);
@@ -137,20 +137,46 @@ void Decabot::beep(int time){
 }
 
 void Decabot::soundBegin() {
-      digitalWrite(ledPin, HIGH);
-      for(int i=400;i<1000;i++){
-        tone(buzzerPin, i, 3);
-        delay(3);
-      }
-      noTone(buzzerPin);
-      delay(50);
-      beep(50);
-      delay(50);
-      beep(50);
-      digitalWrite(ledPin, LOW);
+	digitalWrite(ledPin, HIGH);
+	for(int i=400;i<1000;i++){
+		tone(buzzerPin, i, 3);
+		delay(3);
+	}
+	noTone(buzzerPin);
+	delay(50);
+	beep(50);
+	delay(50);
+	beep(50);
+	digitalWrite(ledPin, LOW);
 }
 
-void Decabot::recordingSound() {
+void Decabot::soundAfirmative() {
+	tone(buzzerPin, 440, 200);
+	delay(200);
+	tone(buzzerPin, 494, 200);
+	delay(200);
+	tone(buzzerPin, 523, 400);
+	delay(400);
+	noTone(buzzerPin);
+}
+
+void Decabot::soundEnd() {
+	tone(buzzerPin, 440, 50);
+	delay(50);
+	tone(buzzerPin, 494, 50);
+	delay(50);
+	tone(buzzerPin, 523, 400);
+	delay(400);
+	tone(buzzerPin, 494, 50);
+	delay(50);
+	tone(buzzerPin, 440, 50);
+	delay(50);
+	tone(buzzerPin, 391, 400);
+	delay(400);
+	noTone(buzzerPin);
+}
+
+void Decabot::soundRecording() {
       //sound played everytime something is recorded in EEPROM
       for(int x=0;x<3;x++){
         beep(50);
@@ -187,14 +213,14 @@ void Decabot::move(int distance, int leftDirection, int RightDirection){
       }
 }
 
-void Decabot::forward(int distance){
-	move(distance,1,1);
+void Decabot::forward(int centimeters){
+	move(centimeters * 100,1,1);
 }
 
-void Decabot::left(int distance){
-	move(distance,1,0);
+void Decabot::left(int degrees){
+	move(degrees * 7.8,1,0);
 }
 
-void Decabot::right(int distance){
-	move(distance,0,1);
+void Decabot::right(int degrees){
+	move(degrees * 7.8,0,1);
 }
