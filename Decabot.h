@@ -15,27 +15,33 @@
 class Decabot
 {
 	public:
+		//constructor		
 		Decabot(int nothing);
 		~Decabot();
+		//basics
 		void boot();
-		void resetMotors();
-		void updateMotors(byte data);
-		void updateMotors();
-		void whoami();
+		void whoAmI();
 		void yourNameIs(String parameter);
 		void yourOwnerIs(String parameter);
 		void output(String message);
+		//sounds
 		void beep(int time);
 		void soundBegin();
 		void soundBoot();
 		void soundEnd();
 		void soundRecording();
-		void oneLeft(int dir);
-		void oneRight(int dir);
+		//basic movements
+		void resetMotors();
+		void updateMotors(byte data);
+		void updateMotors();
+		void oneStepLeft(int dir);
+		void oneStepRight(int dir);
 		void move(int distance, int leftDirection, int RightDirection);
 		void forward(int centimeters);
 		void left(int degrees);
 		void right(int degrees);
+		//Code Domino
+
 
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -51,6 +57,11 @@ class Decabot
 		byte leftBin = B00000000;
 		int rightStep = 0;
 		byte rightBin = B00000000;
+		//Code Domino variables
+		int codePointer = 0;
+		bool moving = 0;
+		bool recording = 0;
+		char runningCode[128];
     
 };
 

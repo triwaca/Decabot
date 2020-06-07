@@ -31,7 +31,7 @@ void Decabot::boot(){
 	//Boot sequence
 	output(F("Initializing Decabot..."));
 	resetMotors();
-	whoami();
+	whoAmI();
 	output(F("READY!"));
 	soundBoot();
 }
@@ -81,7 +81,7 @@ void Decabot::updateMotors(){
       digitalWrite(latchPin, HIGH);
 }
 
-void Decabot::whoami() {
+void Decabot::whoAmI() {
       //OUtputs tag name and owner e-mail of Decabot
       UniqueIDdump(Serial);
       String tmp1 = F("Decabot Name: ");
@@ -186,7 +186,7 @@ void Decabot::soundRecording() {
       }
 }
 
-void Decabot::oneLeft(int dir) {
+void Decabot::oneStepLeft(int dir) {
       if(dir==1){
         leftStep++;
       } else {
@@ -196,7 +196,7 @@ void Decabot::oneLeft(int dir) {
       if(leftStep<1) leftStep = 4;
     }
 
-void Decabot::oneRight(int dir) {
+void Decabot::oneStepRight(int dir) {
       if(dir==1){
         rightStep++;
       } else {
@@ -208,10 +208,10 @@ void Decabot::oneRight(int dir) {
 
 void Decabot::move(int distance, int leftDirection, int RightDirection){
 	for(int i=0;i<distance;i++){
-		oneLeft(leftDirection);
-		oneRight(RightDirection);
+		oneStepLeft(leftDirection);
+		oneStepRight(RightDirection);
 		updateMotors();
-		delay(millisDelay);
+		delay(millisDelay); //That's why you must avoid using this movements commands!
 	}
 	updateMotors(B00000000);
 }
