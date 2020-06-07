@@ -29,17 +29,55 @@ Decabot::~Decabot()
 void Decabot::boot(){
 	//Boot sequence
 	output(F("Initializing Decabot..."));
-	resetMotor();
+	resetMotors();
 	whoami();
 	output(F("READY!"));
 	soundBegin();
 }
 
-void Decabot::resetMotor() {
-	digitalWrite(latchPin, LOW);
-	shiftOut(dataPin, clockPin, MSBFIRST, B00000000); //Send all off to 74HC595
-	digitalWrite(latchPin, HIGH);
+void Decabot::resetMotors() {
+	updateMotors(B00000000);
 	output(F("Reset motors"));
+}
+
+void Decabot::updateMotors(byte data){
+	digitalWrite(latchPin, LOW);
+	shiftOut(dataPin, clockPin, MSBFIRST, data); //Send all off to 74HC595
+	digitalWrite(latchPin, HIGH);
+}
+
+void Decabot::updateMotors(){
+      switch (leftStep) {
+        case 1:
+          leftBin = B10010000;
+          break;
+        case 2:
+          leftBin = B00110000;
+          break;
+        case 3:
+          leftBin = B01100000;
+          break;
+        case 4:
+          leftBin = B11000000;
+          break;
+      }
+      switch (rightStep) {
+        case 1:
+          rightBin = B00001001;
+          break;
+        case 2:
+          rightBin = B00000011;
+          break;
+        case 3:
+          rightBin = B00000110;
+          break;
+        case 4:
+          rightBin = B00001100;
+          break;
+      }
+      digitalWrite(latchPin, LOW);
+      shiftOut(dataPin, clockPin, MSBFIRST, leftBin | rightBin); //Send all off to 74HC595
+      digitalWrite(latchPin, HIGH);
 }
 
 void Decabot::whoami() {
@@ -117,5 +155,25 @@ void Decabot::recordingSound() {
         beep(50);
         delay(50);
       }
+}
+
+void Decabot::oneLeft(int dir) {
+      if(dir==1){
+        leftStep++;
+      } else {
+        leftStep--;
+      }
+      if(leftStep>4) leftStep = 1;
+      if(leftStep<1) leftStep = 4;
+    }
+
+void Decabot::oneRight(int dir) {
+      if(dir==1){
+        rightStep++;
+      } else {
+        rightStep--;
+      }
+      if(rightStep>4) rightStep = 1;
+      if(rightStep<1) rightStep = 4;
 }
 

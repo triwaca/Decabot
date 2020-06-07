@@ -18,7 +18,9 @@ class Decabot
 		Decabot(int nothing);
 		~Decabot();
 		void boot();
-		void resetMotor();
+		void resetMotors();
+		void updateMotors(byte data);
+		void updateMotors();
 		void whoami();
 		void yourNameIs(String parameter);
 		void yourOwnerIs(String parameter);
@@ -26,6 +28,8 @@ class Decabot
 		void beep(int time);
 		void soundBegin();
 		void recordingSound();
+		void oneLeft(int dir);
+		void oneRight(int dir);
 
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -35,6 +39,11 @@ class Decabot
 		int ledPin = 2; //Pin connected to frontal LED
 		char decabotName[5] = "A01  ";
 		char decabotOwner[50] = "anybody@decabot.com";
+		//movements variables
+		int leftStep = 0;
+		byte leftBin = B00000000;
+		int rightStep = 0;
+		byte rightBin = B00000000;
     
 };
 
