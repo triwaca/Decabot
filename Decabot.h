@@ -30,6 +30,10 @@ class Decabot
 		void recordingSound();
 		void oneLeft(int dir);
 		void oneRight(int dir);
+		void move(int distance, int leftDirection, int RightDirection);
+		void forward(int distance);
+		void left(int distance);
+		void right(int distance);
 
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -40,6 +44,7 @@ class Decabot
 		char decabotName[5] = "A01  ";
 		char decabotOwner[50] = "anybody@decabot.com";
 		//movements variables
+		int millisDelay = 4;
 		int leftStep = 0;
 		byte leftBin = B00000000;
 		int rightStep = 0;

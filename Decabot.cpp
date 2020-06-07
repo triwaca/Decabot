@@ -6,9 +6,10 @@
 
 #include"Decabot.h"
 
-Decabot::Decabot(int nothing) 
+Decabot::Decabot(int delay) 
 {
 	//define pin modes for shift register, buzzer and LED
+	millisDelay = delay;
 	pinMode(buzzerPin, OUTPUT);
 	pinMode(ledPin, OUTPUT);
 	pinMode(latchPin, OUTPUT);
@@ -177,3 +178,23 @@ void Decabot::oneRight(int dir) {
       if(rightStep<1) rightStep = 4;
 }
 
+void Decabot::move(int distance, int leftDirection, int RightDirection){
+      for(int i=0;i<distance;i++){
+        oneLeft(leftDirection);
+        oneRight(RightDirection);
+	updateMotors();
+        delay(millisDelay);
+      }
+}
+
+void Decabot::forward(int distance){
+	move(distance,1,1);
+}
+
+void Decabot::left(int distance){
+	move(distance,1,0);
+}
+
+void Decabot::right(int distance){
+	move(distance,0,1);
+}
