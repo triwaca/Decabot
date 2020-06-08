@@ -51,6 +51,7 @@ class Decabot
 		void codeLeft(int degrees);
 		void codeRight(int degrees);
 		void codeSpeed(int speed);
+		void goTo(int piece);
 		void setRadious(float radious);
 		void codeCurveLeft(int);
 		void codeEnd();

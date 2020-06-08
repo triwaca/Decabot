@@ -296,6 +296,7 @@ void Decabot::nextCommand(){
 		if(runningCode[runningCodeIndex]=='L') codeLeft(parameterData);
 		if(runningCode[runningCodeIndex]=='R') codeRight(parameterData);
 		if(runningCode[runningCodeIndex]=='S') codeSpeed(parameterData);
+		if(runningCode[runningCodeIndex]=='B') goTo(parameterData);
 		if(runningCode[runningCodeIndex]=='O') codeEnd();
 		runningCodeIndex++;
 	} else {
@@ -390,6 +391,14 @@ void Decabot::codeEnd(){
 	Serial.println(F("[end]"));
 	soundEnd();
 	resetMotors();
+}
+
+void Decabot::goTo(int piece){
+	runningCodeIndex = piece-2;
+	String msg = F("[go to] piece [");
+	msg.concat(piece);
+	msg.concat(F("]"));
+	Serial.println(msg);
 }
 
 void Decabot::updateSteps(){
