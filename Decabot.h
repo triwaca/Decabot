@@ -51,7 +51,9 @@ class Decabot
 		void codeLeft(int degrees);
 		void codeRight(int degrees);
 		void codeSpeed(int speed);
-		void goTo(int piece);
+		void codeGoTo(int piece);
+		void codeWait(int timeWait);
+		void codeMusic(int toneFreq);
 		void setRadious(float radious);
 		void codeCurveLeft(int);
 		void codeEnd();

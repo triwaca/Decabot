@@ -296,7 +296,9 @@ void Decabot::nextCommand(){
 		if(runningCode[runningCodeIndex]=='L') codeLeft(parameterData);
 		if(runningCode[runningCodeIndex]=='R') codeRight(parameterData);
 		if(runningCode[runningCodeIndex]=='S') codeSpeed(parameterData);
-		if(runningCode[runningCodeIndex]=='B') goTo(parameterData);
+		if(runningCode[runningCodeIndex]=='B') codeGoTo(parameterData);
+		if(runningCode[runningCodeIndex]=='W') codeWait(parameterData);
+		if(runningCode[runningCodeIndex]=='M') codeMusic(parameterData);
 		if(runningCode[runningCodeIndex]=='O') codeEnd();
 		runningCodeIndex++;
 	} else {
@@ -393,12 +395,30 @@ void Decabot::codeEnd(){
 	resetMotors();
 }
 
-void Decabot::goTo(int piece){
+void Decabot::codeGoTo(int piece){
 	runningCodeIndex = piece-2;
 	String msg = F("[go to] piece [");
 	msg.concat(piece);
 	msg.concat(F("]"));
 	Serial.println(msg);
+}
+
+void Decabot::codeWait(int timeWait){
+	String msg = F("[wait][");
+	msg.concat(timeWait);
+	msg.concat(F("]secs"));
+	Serial.println(msg);
+	delay(timeWait * 1000);
+}
+
+void Decabot::codeMusic(int toneFreq){
+	String msg = F("[music][");
+	msg.concat(toneFreq);
+	msg.concat(F("]"));
+	Serial.println(msg);
+	tone(buzzerPin, toneFreq);
+	delay(500);
+	noTone(buzzerPin);
 }
 
 void Decabot::updateSteps(){
@@ -423,20 +443,6 @@ void Decabot::updateSteps(){
 void Decabot::update(){
 	// Fire moving functions each delay in millis, to make step motors work properlly
 	// Substitute for delay in moving steps
-	/*
-	actualMillis = millis();
-	if(actualMillis - lastMillis >= millisDelay){
-		lastMillis = actualMillis;
-		if(moving){
-			updateSteps();
-			updateMotors();
-		} else {
-			if(executing){
-				nextCommand();
-			}
-		}
-	}
-	*/
 	if(moving){
 		updateSteps();
 		updateMotors();
