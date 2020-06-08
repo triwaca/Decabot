@@ -30,16 +30,16 @@ Decabot::~Decabot()
 void Decabot::boot(){
 	//Boot sequence
 	Serial.println(F(" - - - - - - - - - - - - - - - - - - - - - - - - - - D E C A N O"));
-	output(F("Initializing Decabot..."));
+	outputln(F("Initializing Decabot..."));
 	resetMotors();
 	whoAmI();
-	soundBoot();
-	output(F("READY!"));
+	//soundBoot();
+	outputln(F("READY!"));
 }
 
 void Decabot::resetMotors() {
 	updateMotors(B00000000);
-	output(F("Reset motors"));
+	outputln(F("Reset motors"));
 }
 
 void Decabot::updateMotors(byte data){
@@ -91,12 +91,12 @@ void Decabot::whoAmI() {
 		tmp1.concat((char) EEPROM.read(i));
 		decabotName[i - 896] = EEPROM.read(i);
 	}
-	output(tmp1);
+	outputln(tmp1);
 	String tmp2 = F("Owner: ");
 	for(int i=901;i<950;i++){
 		tmp2.concat((char) EEPROM.read(i));
 	}
-	output(tmp2);
+	outputln(tmp2);
 }
 
 void Decabot::yourNameIs(String parameter){
@@ -106,8 +106,8 @@ void Decabot::yourNameIs(String parameter){
       for(int i=0;i<=5;i++){
         EEPROM.write(i + 896,decabotName[i]);
       }
-      output(F("new name:"));
-      output(decabotName);
+      outputln(F("new name:"));
+      outputln(decabotName);
 }
 
 void Decabot::yourOwnerIs(String parameter){
@@ -117,11 +117,11 @@ void Decabot::yourOwnerIs(String parameter){
       for(int i=0;i<=50;i++){
         EEPROM.write(i + 902,decabotOwner[i]);
       }
-      output(F("Decabot owner: "));
-      output(decabotOwner);
+      outputln(F("Decabot owner: "));
+      outputln(decabotOwner);
 }
 
-void Decabot::output(String message) {
+void Decabot::outputln(String message) {
 	//Terminal-like output, with timestamp
 	//User must start serial in setup() to work
 	String msg = "";
@@ -129,6 +129,16 @@ void Decabot::output(String message) {
 	msg.concat(F("\t"));
 	msg.concat(message);
 	Serial.println(msg);
+}
+
+void Decabot::output(String message) {
+	//Terminal-like output, with timestamp
+	//Doesnt break line at the end
+	String msg = "";
+	msg.concat(String(millis()/1000.0,2));
+	msg.concat(F("\t"));
+	msg.concat(message);
+	Serial.print(msg);
 }
 
 void Decabot::beep(int time){
@@ -153,7 +163,7 @@ void Decabot::soundBoot() {
 }
 
 void Decabot::soundBegin() {
-	output(F("Start!"));
+	outputln(F("Start!"));
 	tone(buzzerPin, 440, 200);
 	delay(200);
 	tone(buzzerPin, 494, 200);
@@ -164,7 +174,7 @@ void Decabot::soundBegin() {
 }
 
 void Decabot::soundEnd() {
-	output(F("End!"));
+	outputln(F("End!"));
 	tone(buzzerPin, 440, 50);
 	delay(50);
 	tone(buzzerPin, 494, 50);
@@ -222,7 +232,7 @@ void Decabot::forward(int centimeters){
 	String msg = F("Going forward ");
 	msg.concat(centimeters);
 	msg.concat(F("cm"));
-	output(msg);
+	outputln(msg);
 	move(centimeters * 100,1,1);
 }
 
@@ -230,7 +240,7 @@ void Decabot::left(int degrees){
 	String msg = F("Turning left ");
 	msg.concat(degrees);
 	msg.concat(F("°"));
-	output(msg);
+	outputln(msg);
 	move(degrees * 7.8,1,0);
 }
 
@@ -238,14 +248,14 @@ void Decabot::right(int degrees){
 	String msg = F("Turning right ");
 	msg.concat(degrees);
 	msg.concat(F("°"));
-	output(msg);
+	outputln(msg);
 	move(degrees * 7.8,0,1);
 }
 
 void Decabot::codeDomino(char code[]){
 	//loads codeDomino on RAM
 	int i=0;
-	output(F("New program loaded on RAM!"));
+	outputln(F("New program loaded on RAM!"));
 	Serial.print(F("\t"));
 	for(i=0;i<64;i++){
 		runningCode[i] = code[i]; //fill the given code to RAM
@@ -267,65 +277,117 @@ void Decabot::run(){
 
 void Decabot::nextCommand(){
 	//call commands using the running Code Index variable and the runningCode array
-	if(runningCode[runningCodeIndex]=='F') codeForward(10);
-	if(runningCode[runningCodeIndex]=='L') codeLeft(90);
-	if(runningCode[runningCodeIndex]=='R') codeRight(90);
-	if(runningCode[runningCodeIndex]=='O') codeEnd();
-	runningCodeIndex++;
+	if(!isDigit(runningCode[runningCodeIndex])){
+		output(F("("));
+		Serial.print(runningCodeIndex+1);
+		Serial.print(F(")"));
+		int parameterDigits = 0;
+		int parameterData = 0;
+		//check how many numbers are after the command
+		while(isDigit(runningCode[runningCodeIndex+1+parameterDigits])){
+			parameterDigits++;
+		}
+		int j=0;
+		for(parameterDigits;parameterDigits>0;parameterDigits--){
+			parameterData = parameterData + ((int)(runningCode[runningCodeIndex+parameterDigits]) - 48) * poten(10,j); 
+			j++;
+		}
+		if(runningCode[runningCodeIndex]=='F') codeForward(parameterData);
+		if(runningCode[runningCodeIndex]=='L') codeLeft(parameterData);
+		if(runningCode[runningCodeIndex]=='R') codeRight(parameterData);
+		if(runningCode[runningCodeIndex]=='S') codeSpeed(parameterData);
+		if(runningCode[runningCodeIndex]=='O') codeEnd();
+		runningCodeIndex++;
+	} else {
+		runningCodeIndex++;
+	}
 }
 
 void Decabot::codeForward(int distance){
+	if(distance == 0) distance = 10; //set default
 	leftSpeed = rightSpeed = millisDelay;
 	leftDirection = rightDirection = 1;
 	String msg = F("[forward][");
 	msg.concat(distance);
 	msg.concat(F("]cm"));
-	output(msg);
+	Serial.println(msg);
 	moving = 1;
 	stepsToMove += distance * 100; //transform distance in steps
 }
 
 void Decabot::codeForward(int distance,int speed){
+	if(distance == 0) distance = 10; //set default
 	leftSpeed = rightSpeed = map(speed,100,0,millisDelay,50);
 	leftDirection = rightDirection = 1;
 	String msg = F("[forward][");
 	msg.concat(distance);
 	msg.concat(F("]cm"));
-	output(msg);
+	Serial.println(msg);
 	moving = 1;
 	stepsToMove += distance * 100; //transform distance in steps
 }
 
 void Decabot::codeLeft(int degrees){
+	if(degrees == 0) degrees = 90; //set default
 	leftSpeed = rightSpeed = millisDelay;
 	leftDirection = 1;
 	rightDirection = 0;
 	String msg = F("[left][");
 	msg.concat(degrees);
 	msg.concat(F("]°"));
-	output(msg);
+	Serial.println(msg);
 	turningLeft = 1;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
 }
 
 void Decabot::codeRight(int degrees){
+	if(degrees == 0) degrees = 90; //set default
 	leftSpeed = rightSpeed = millisDelay;
 	leftDirection = 0;
 	rightDirection = 1;
 	String msg = F("[left][");
 	msg.concat(degrees);
 	msg.concat(F("]°"));
-	output(msg);
+	Serial.println(msg);
 	turningLeft = 0;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
 }
 
+void Decabot::codeSpeed(int speed){
+	if(speed == 0) speed = 9; //set default
+	millisDelay = map(speed,10,1,3,13);
+	String msg = F("[speed][");
+	msg.concat(speed);
+	msg.concat(F("]"));
+	Serial.println(msg);
+}
+
+void Decabot::setRadious(float radious){
+	//define radious to curve commands
+	curveRadious = radious;
+}
+
+void Decabot::codeCurveLeft(int degrees){
+	leftSpeed = rightSpeed = millisDelay;
+	leftDirection = 1;
+	rightDirection = 0;
+	String msg = F("[curve left][");
+	msg.concat(degrees);
+	msg.concat(F("]° rad["));
+	msg.concat(curveRadious);
+	msg.concat(F("]cm"));
+	Serial.println(msg);
+	turningLeft = 1;
+	moving = 1;
+	stepsToMove = degrees * 7.8;
+}	
+
 void Decabot::codeEnd(){
 	stepsToMove = 0; //stop moving
 	executing = 0;
-	output(F("[end]"));
+	Serial.println(F("[end]"));
 	soundEnd();
 	resetMotors();
 }
@@ -389,4 +451,11 @@ void Decabot::debug(){
 	Serial.print(moving);
 	Serial.print("\t executing:");
 	Serial.println(executing);
+}
+
+int Decabot::poten(int base, int expoent){
+	if(expoent == 0)
+	return 1;
+	else   
+	return base * poten(base, expoent - 1);
 }

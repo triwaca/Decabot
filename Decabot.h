@@ -23,6 +23,7 @@ class Decabot
 		void whoAmI();
 		void yourNameIs(String parameter);
 		void yourOwnerIs(String parameter);
+		void outputln(String message);
 		void output(String message);
 		//sounds
 		void beep(int time);
@@ -49,6 +50,9 @@ class Decabot
 		void codeForward(int distance,int speed);
 		void codeLeft(int degrees);
 		void codeRight(int degrees);
+		void codeSpeed(int speed);
+		void setRadious(float radious);
+		void codeCurveLeft(int);
 		void codeEnd();
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -69,6 +73,7 @@ class Decabot
 		bool leftDirection = 1;
 		bool rightDirection = 1;
 		bool turningLeft = 0;
+		float curveRadious = 5;
 		//Code Domino variables
 		bool moving = 0;
 		int stepsToMove = 0;
@@ -82,6 +87,8 @@ class Decabot
 		//private moving functions
 		void updateSteps();
 		void debug();
+		//private math
+		int poten(int base, int expoent);
 		
     
 };
