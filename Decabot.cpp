@@ -292,18 +292,22 @@ void Decabot::nextCommand(){
 			parameterData = parameterData + ((int)(runningCode[runningCodeIndex+parameterDigits]) - 48) * poten(10,j); 
 			j++;
 		}
-		if(runningCode[runningCodeIndex]=='F') codeForward(parameterData);
-		if(runningCode[runningCodeIndex]=='L') codeLeft(parameterData);
-		if(runningCode[runningCodeIndex]=='R') codeRight(parameterData);
-		if(runningCode[runningCodeIndex]=='S') codeSpeed(parameterData);
-		if(runningCode[runningCodeIndex]=='B') codeGoTo(parameterData);
-		if(runningCode[runningCodeIndex]=='W') codeWait(parameterData);
-		if(runningCode[runningCodeIndex]=='M') codeMusic(parameterData);
-		if(runningCode[runningCodeIndex]=='O') codeEnd();
+		codeInterpreter(runningCode[runningCodeIndex],parameterData);
 		runningCodeIndex++;
 	} else {
 		runningCodeIndex++;
 	}
+}
+
+void Decabot::codeInterpreter(char command, int parameter){
+	if(command=='F') codeForward(parameter);
+	if(command=='L') codeLeft(parameter);
+	if(command=='R') codeRight(parameter);
+	if(command=='S') codeSpeed(parameter);
+	if(command=='B') codeGoTo(parameter);
+	if(command=='W') codeWait(parameter);
+	if(command=='M') codeMusic(parameter);
+	if(command=='O') codeEnd();
 }
 
 void Decabot::codeForward(int distance){

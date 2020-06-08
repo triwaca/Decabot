@@ -46,6 +46,7 @@ class Decabot
 		void codeDomino(char code[]);
 		void run();
 		void nextCommand();
+		void codeInterpreter(char command, int parameter);
 		void codeForward(int distance);
 		void codeForward(int distance,int speed);
 		void codeLeft(int degrees);
