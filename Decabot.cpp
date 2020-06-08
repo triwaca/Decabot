@@ -346,7 +346,7 @@ void Decabot::codeRight(int degrees){
 	leftSpeed = rightSpeed = millisDelay;
 	leftDirection = 0;
 	rightDirection = 1;
-	String msg = F("[left][");
+	String msg = F("[right][");
 	msg.concat(degrees);
 	msg.concat(F("]°"));
 	Serial.println(msg);
