@@ -268,17 +268,58 @@ void Decabot::run(){
 void Decabot::nextCommand(){
 	//call commands using the running Code Index variable and the runningCode array
 	if(runningCode[runningCodeIndex]=='F') codeForward(10);
+	if(runningCode[runningCodeIndex]=='L') codeLeft(90);
+	if(runningCode[runningCodeIndex]=='R') codeRight(90);
 	if(runningCode[runningCodeIndex]=='O') codeEnd();
 	runningCodeIndex++;
 }
 
 void Decabot::codeForward(int distance){
+	leftSpeed = rightSpeed = millisDelay;
+	leftDirection = rightDirection = 1;
 	String msg = F("[forward][");
 	msg.concat(distance);
 	msg.concat(F("]cm"));
 	output(msg);
 	moving = 1;
 	stepsToMove += distance * 100; //transform distance in steps
+}
+
+void Decabot::codeForward(int distance,int speed){
+	leftSpeed = rightSpeed = map(speed,100,0,millisDelay,50);
+	leftDirection = rightDirection = 1;
+	String msg = F("[forward][");
+	msg.concat(distance);
+	msg.concat(F("]cm"));
+	output(msg);
+	moving = 1;
+	stepsToMove += distance * 100; //transform distance in steps
+}
+
+void Decabot::codeLeft(int degrees){
+	leftSpeed = rightSpeed = millisDelay;
+	leftDirection = 1;
+	rightDirection = 0;
+	String msg = F("[left][");
+	msg.concat(degrees);
+	msg.concat(F("]°"));
+	output(msg);
+	turningLeft = 1;
+	moving = 1;
+	stepsToMove = degrees * 7.8;
+}
+
+void Decabot::codeRight(int degrees){
+	leftSpeed = rightSpeed = millisDelay;
+	leftDirection = 0;
+	rightDirection = 1;
+	String msg = F("[left][");
+	msg.concat(degrees);
+	msg.concat(F("]°"));
+	output(msg);
+	turningLeft = 0;
+	moving = 1;
+	stepsToMove = degrees * 7.8;
 }
 
 void Decabot::codeEnd(){
@@ -292,9 +333,17 @@ void Decabot::codeEnd(){
 void Decabot::updateSteps(){
 	//check if there are movements to do
 	if(stepsToMove > 0) {
-		oneStepLeft(1);
-		oneStepRight(1);
-		stepsToMove--;
+		actualMillis = millis();
+		if(actualMillis - lastLeftMillis >= leftSpeed){
+			lastLeftMillis = actualMillis;
+			oneStepLeft(leftDirection);
+			if(turningLeft) stepsToMove--;
+		}
+		if(actualMillis - lastRightMillis >= rightSpeed){
+			lastRightMillis = actualMillis;
+			oneStepRight(rightDirection);
+			if(!turningLeft) stepsToMove--;
+		}
 	} else {
 		moving = 0;
 	}
@@ -303,6 +352,7 @@ void Decabot::updateSteps(){
 void Decabot::update(){
 	// Fire moving functions each delay in millis, to make step motors work properlly
 	// Substitute for delay in moving steps
+	/*
 	actualMillis = millis();
 	if(actualMillis - lastMillis >= millisDelay){
 		lastMillis = actualMillis;
@@ -313,6 +363,15 @@ void Decabot::update(){
 			if(executing){
 				nextCommand();
 			}
+		}
+	}
+	*/
+	if(moving){
+		updateSteps();
+		updateMotors();
+	} else {
+		if(executing){
+			nextCommand();
 		}
 	}
 	if(millis()%5000==0){

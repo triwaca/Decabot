@@ -46,6 +46,9 @@ class Decabot
 		void run();
 		void nextCommand();
 		void codeForward(int distance);
+		void codeForward(int distance,int speed);
+		void codeLeft(int degrees);
+		void codeRight(int degrees);
 		void codeEnd();
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -61,6 +64,11 @@ class Decabot
 		byte leftBin = B00000000;
 		int rightStep = 0;
 		byte rightBin = B00000000;
+		int leftSpeed = 5;
+		int rightSpeed = 5;
+		bool leftDirection = 1;
+		bool rightDirection = 1;
+		bool turningLeft = 0;
 		//Code Domino variables
 		bool moving = 0;
 		int stepsToMove = 0;
@@ -69,7 +77,8 @@ class Decabot
 		int runningCodeIndex = 0;
 		char runningCode[128];
 		long actualMillis = 0;
-		long lastMillis = 0;
+		long lastLeftMillis = 0;
+		long lastRightMillis = 0;
 		//private moving functions
 		void updateSteps();
 		void debug();
