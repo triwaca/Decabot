@@ -29,11 +29,12 @@ Decabot::~Decabot()
 
 void Decabot::boot(){
 	//Boot sequence
+	Serial.println(F(" - - - - - - - - - - - - - - - - - - - - - - - - - - D E C A N O"));
 	output(F("Initializing Decabot..."));
 	resetMotors();
 	whoAmI();
-	output(F("READY!"));
 	soundBoot();
+	output(F("READY!"));
 }
 
 void Decabot::resetMotors() {
@@ -82,19 +83,20 @@ void Decabot::updateMotors(){
 }
 
 void Decabot::whoAmI() {
-      //OUtputs tag name and owner e-mail of Decabot
-      UniqueIDdump(Serial);
-      String tmp1 = F("Decabot Name: ");
-      for(int i=896;i<=900;i++){
-        tmp1.concat((char) EEPROM.read(i));
-        decabotName[i - 896] = EEPROM.read(i);
-      }
-      output(tmp1);
-      String tmp2 = F("Owner: ");
-      for(int i=901;i<950;i++){
-        tmp2.concat((char) EEPROM.read(i));
-      }
-      output(tmp2);
+	//OUtputs tag name and owner e-mail of Decabot
+	Serial.print(F("\t"));
+	UniqueIDdump(Serial);
+	String tmp1 = F("Decabot Name: ");
+	for(int i=896;i<=900;i++){
+		tmp1.concat((char) EEPROM.read(i));
+		decabotName[i - 896] = EEPROM.read(i);
+	}
+	output(tmp1);
+	String tmp2 = F("Owner: ");
+	for(int i=901;i<950;i++){
+		tmp2.concat((char) EEPROM.read(i));
+	}
+	output(tmp2);
 }
 
 void Decabot::yourNameIs(String parameter){
@@ -213,7 +215,7 @@ void Decabot::move(int distance, int leftDirection, int RightDirection){
 		updateMotors();
 		delay(millisDelay); //That's why you must avoid using this movements commands!
 	}
-	updateMotors(B00000000);
+	resetMotors();
 }
 
 void Decabot::forward(int centimeters){
@@ -238,4 +240,94 @@ void Decabot::right(int degrees){
 	msg.concat(F("°"));
 	output(msg);
 	move(degrees * 7.8,0,1);
+}
+
+void Decabot::codeDomino(char code[]){
+	//loads codeDomino on RAM
+	int i=0;
+	output(F("New program loaded on RAM!"));
+	Serial.print(F("\t"));
+	for(i=0;i<64;i++){
+		runningCode[i] = code[i]; //fill the given code to RAM
+		Serial.print(F("["));		
+		Serial.print(runningCode[i]);
+		Serial.print(F("]"));		
+		if(runningCode[i]=='O') break;
+	}
+	Serial.println("");
+	for(i;i<128;i++) runningCode[i]='O'; //fill the rest of the array with End command
+}
+
+void Decabot::run(){
+	soundBegin();
+	runningCodeIndex = 0;
+	executing = 1;
+	nextCommand();
+}
+
+void Decabot::nextCommand(){
+	//call commands using the running Code Index variable and the runningCode array
+	if(runningCode[runningCodeIndex]=='F') codeForward(10);
+	if(runningCode[runningCodeIndex]=='O') codeEnd();
+	runningCodeIndex++;
+}
+
+void Decabot::codeForward(int distance){
+	String msg = F("[forward][");
+	msg.concat(distance);
+	msg.concat(F("]cm"));
+	output(msg);
+	moving = 1;
+	stepsToMove += distance * 100; //transform distance in steps
+}
+
+void Decabot::codeEnd(){
+	stepsToMove = 0; //stop moving
+	executing = 0;
+	output(F("[end]"));
+	soundEnd();
+	resetMotors();
+}
+
+void Decabot::updateSteps(){
+	//check if there are movements to do
+	if(stepsToMove > 0) {
+		oneStepLeft(1);
+		oneStepRight(1);
+		stepsToMove--;
+	} else {
+		moving = 0;
+	}
+}
+
+void Decabot::update(){
+	// Fire moving functions each delay in millis, to make step motors work properlly
+	// Substitute for delay in moving steps
+	actualMillis = millis();
+	if(actualMillis - lastMillis >= millisDelay){
+		lastMillis = actualMillis;
+		if(moving){
+			updateSteps();
+			updateMotors();
+		} else {
+			if(executing){
+				nextCommand();
+			}
+		}
+	}
+	if(millis()%5000==0){
+		//debug();
+	}
+	delay(1); //slow the code to not to run twice the update in the same millissecond
+}
+
+void Decabot::debug(){
+	Serial.print("\t actualMillis:");
+	Serial.print(actualMillis);
+	Serial.print("\t stepsToMove:");
+	Serial.print(stepsToMove);
+	Serial.print("\t moving:");
+	Serial.print(moving);
+	Serial.print("\t executing:");
+	Serial.println(executing);
 }
