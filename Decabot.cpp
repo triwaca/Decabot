@@ -267,6 +267,16 @@ void Decabot::codeDomino(char code[]){
 		if(runningCode[i]=='O') break;
 	}
 	Serial.println("");
+	Serial.print(F("\t "));
+	for(int j=0;j<=i;j++){
+		Serial.print(j+1);
+		if(j<8) {
+			Serial.print("  ");
+		} else {
+			Serial.print(" ");
+		}
+	}
+	Serial.println("");
 	for(i;i<128;i++) runningCode[i]='O'; //fill the rest of the array with End command
 }
 
