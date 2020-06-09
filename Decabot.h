@@ -99,6 +99,7 @@ class Decabot
 		long actualMillis = 0;
 		long lastLeftMillis = 0;
 		long lastRightMillis = 0;
+		long codeMillisBegin = 0;
 		//runtime repeat variables
 		int repeatCalls = 0;
 		int repeatPointers[5];

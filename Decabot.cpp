@@ -288,6 +288,7 @@ void Decabot::codeDomino(char code[]){
 void Decabot::run(){
 	soundBegin();
 	runningCodeIndex = 0;
+	codeMillisBegin = millis();
 	executing = 1;
 	nextCommand();
 }
@@ -456,7 +457,19 @@ void Decabot::showPosition(){
 void Decabot::codeEnd(){
 	stepsToMove = 0; //stop moving
 	executing = 0;
-	Serial.println(F("[end]"));
+	Serial.print(F("[end] \n\tExecution time: "));
+	int runTime = round((millis() - codeMillisBegin)/1000); 
+	if(runTime<60){
+		Serial.print(runTime);
+		Serial.println(F(" second(s)"));
+	} else {
+		int runTimeMin = round(runTime/60);
+		runTime = runTime%60;
+		Serial.print(runTimeMin);
+		Serial.print(F(" minute(s) and "));
+		Serial.print(runTime);
+		Serial.println(F(" second(s)"));
+	}
 	soundEnd();
 	resetMotors();
 }
