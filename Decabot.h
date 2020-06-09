@@ -53,6 +53,8 @@ class Decabot
 		void codeRight(int degrees);
 		void codeSpeed(int speed);
 		void codeGoTo(int piece);
+		void codeRepeat(int times);
+		void codeStopRepeat();
 		void codeWait(int timeWait);
 		void codeMusic(int toneFreq);
 		void setRadious(float radious);
@@ -88,13 +90,16 @@ class Decabot
 		long actualMillis = 0;
 		long lastLeftMillis = 0;
 		long lastRightMillis = 0;
+		//runtime repeat variables
+		int repeatCalls = 0;
+		int repeatPointers[5];
+		int repeatCounters[5];
 		//private moving functions
 		void updateSteps();
+		//private functions
 		void debug();
 		//private math
 		int poten(int base, int expoent);
-		
-    
 };
 
 #endif

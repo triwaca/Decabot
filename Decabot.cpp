@@ -127,6 +127,7 @@ void Decabot::outputln(String message) {
 	String msg = "";
 	msg.concat(String(millis()/1000.0,2));
 	msg.concat(F("\t"));
+	for(int i=0;i<repeatCalls;i++) msg.concat(F(" | "));
 	msg.concat(message);
 	Serial.println(msg);
 }
@@ -137,6 +138,7 @@ void Decabot::output(String message) {
 	String msg = "";
 	msg.concat(String(millis()/1000.0,2));
 	msg.concat(F("\t"));
+	for(int i=0;i<repeatCalls;i++) msg.concat(F(" | "));
 	msg.concat(message);
 	Serial.print(msg);
 }
@@ -307,6 +309,8 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='B') codeGoTo(parameter);
 	if(command=='W') codeWait(parameter);
 	if(command=='M') codeMusic(parameter);
+	if(command=='X') codeRepeat(parameter);
+	if(command=='Y') codeStopRepeat();
 	if(command=='O') codeEnd();
 }
 
@@ -407,6 +411,31 @@ void Decabot::codeGoTo(int piece){
 	Serial.println(msg);
 }
 
+void Decabot::codeRepeat(int times){
+	repeatCalls++; //increase the number of repetitions called
+	String msg = F("[repeat][");
+	msg.concat(times);
+	msg.concat(F("]x"));
+	Serial.println(msg);
+	repeatPointers[repeatCalls] = runningCodeIndex + 1; //mark the begin of repetition, so the code can go back each interation
+	repeatCounters[repeatCalls] = times; //mark the number of repetitions of each interation
+}
+
+void Decabot::codeStopRepeat(){
+	String msg = "";
+	if(repeatCounters[repeatCalls]>1){ //check if still needs to repeat
+		runningCodeIndex = repeatPointers[repeatCalls];
+		repeatCounters[repeatCalls]--;
+		msg.concat(F("[back to repeat]"));
+		msg.concat(repeatCounters[repeatCalls]);
+		msg.concat(F("x"));
+	} else {
+		msg.concat(F("[stop repeat]"));
+		repeatCalls--;
+	}
+	Serial.println(msg);	
+}
+
 void Decabot::codeWait(int timeWait){
 	String msg = F("[wait][");
 	msg.concat(timeWait);
@@ -478,3 +507,4 @@ int Decabot::poten(int base, int expoent){
 	else   
 	return base * poten(base, expoent - 1);
 }
+
