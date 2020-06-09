@@ -21,6 +21,7 @@ class Decabot
 		//basics
 		void boot();
 		void whoAmI();
+		String sayMyName();
 		void yourNameIs(String parameter);
 		void yourOwnerIs(String parameter);
 		void outputln(String message);
@@ -59,6 +60,10 @@ class Decabot
 		void codeMusic(int toneFreq);
 		void setRadious(float radious);
 		void codeCurveLeft(int);
+		void setPosition(float x, float y);
+		void setHeading(float degrees);
+		void incrementXYPosition(float distanceForward);
+		void showPosition();
 		void codeEnd();
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
@@ -66,8 +71,8 @@ class Decabot
 		int dataPin = 6; //Pin connected to DS of 74HC595
 		int buzzerPin = 3; //Pin connected to buzzer
 		int ledPin = 2; //Pin connected to frontal LED
-		char decabotName[5] = "A01  ";
-		char decabotOwner[50] = "anybody@decabot.com";
+		String decabotName = "A01  ";
+		String decabotOwner = "anybody@decabot.com";
 		//movements variables
 		int millisDelay = 4;
 		int leftStep = 0;
@@ -80,6 +85,10 @@ class Decabot
 		bool rightDirection = 1;
 		bool turningLeft = 0;
 		float curveRadious = 5;
+		//self position variables
+		float xPos = 0;
+		float yPos = 0;
+		float heading = 90;
 		//Code Domino variables
 		bool moving = 0;
 		int stepsToMove = 0;
@@ -100,6 +109,7 @@ class Decabot
 		void debug();
 		//private math
 		int poten(int base, int expoent);
+		float radian(float degree);
 };
 
 #endif

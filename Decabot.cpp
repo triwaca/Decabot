@@ -87,38 +87,43 @@ void Decabot::whoAmI() {
 	Serial.print(F("\t"));
 	UniqueIDdump(Serial);
 	String tmp1 = F("Decabot Name: ");
-	for(int i=896;i<=900;i++){
-		tmp1.concat((char) EEPROM.read(i));
-		decabotName[i - 896] = EEPROM.read(i);
-	}
+	tmp1.concat(sayMyName());
 	outputln(tmp1);
-	String tmp2 = F("Owner: ");
+	String owner = F("Owner: ");
 	for(int i=901;i<950;i++){
-		tmp2.concat((char) EEPROM.read(i));
+		owner.concat((char) EEPROM.read(i));
 	}
-	outputln(tmp2);
+	outputln(owner);
+}
+
+String Decabot::sayMyName(){
+	decabotName = "";
+	for(int i=896;i<=900;i++){
+		decabotName.concat((char) EEPROM.read(i));
+	}
+	return decabotName;
 }
 
 void Decabot::yourNameIs(String parameter){
       //change Decabot's tag name on EEPROM
       soundRecording();
-      parameter.toCharArray(decabotName,6);
+      /*parameter.toCharArray(decabotName,6);
       for(int i=0;i<=5;i++){
         EEPROM.write(i + 896,decabotName[i]);
       }
       outputln(F("new name:"));
-      outputln(decabotName);
+      outputln(decabotName);*/
 }
 
 void Decabot::yourOwnerIs(String parameter){
       //change decabot emails owner on EEPROM
       soundRecording();
-      parameter.toCharArray(decabotOwner,50);
+      /*parameter.toCharArray(decabotOwner,50);
       for(int i=0;i<=50;i++){
         EEPROM.write(i + 902,decabotOwner[i]);
       }
       outputln(F("Decabot owner: "));
-      outputln(decabotOwner);
+      outputln(decabotOwner);*/
 }
 
 void Decabot::outputln(String message) {
@@ -321,6 +326,8 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='M') codeMusic(parameter);
 	if(command=='X') codeRepeat(parameter);
 	if(command=='Y') codeStopRepeat();
+	if(command=='x') setPosition(parameter,yPos); //RFID commands for the arena
+	if(command=='y') setPosition(xPos,parameter); //RFID commands for the arena
 	if(command=='O') codeEnd();
 }
 
@@ -334,6 +341,8 @@ void Decabot::codeForward(int distance){
 	Serial.println(msg);
 	moving = 1;
 	stepsToMove += distance * 100; //transform distance in steps
+	//self position
+	incrementXYPosition(distance);
 }
 
 void Decabot::codeForward(int distance,int speed){
@@ -346,6 +355,20 @@ void Decabot::codeForward(int distance,int speed){
 	Serial.println(msg);
 	moving = 1;
 	stepsToMove += distance * 100; //transform distance in steps
+	//self position
+	incrementXYPosition(distance);
+}
+
+void Decabot::setHeading(float degrees){
+	heading = degrees;
+	showPosition();
+}
+
+
+void Decabot::incrementXYPosition(float distanceForward){
+	xPos += sin(radian(heading)) * distanceForward;
+	yPos +=	cos(radian(heading)) * distanceForward;
+	showPosition();
 }
 
 void Decabot::codeLeft(int degrees){
@@ -360,6 +383,10 @@ void Decabot::codeLeft(int degrees){
 	turningLeft = 1;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
+	//self position
+	heading += degrees;
+	if(heading>360) heading -= 360;
+	if(heading<0) heading += 360;
 }
 
 void Decabot::codeRight(int degrees){
@@ -374,6 +401,10 @@ void Decabot::codeRight(int degrees){
 	turningLeft = 0;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
+	//self position
+	heading -= degrees;
+	if(heading>360) heading -= 360;
+	if(heading<0) heading += 360;
 }
 
 void Decabot::codeSpeed(int speed){
@@ -404,6 +435,23 @@ void Decabot::codeCurveLeft(int degrees){
 	moving = 1;
 	stepsToMove = degrees * 7.8;
 }	
+
+void Decabot::setPosition(float x, float y){
+	xPos = x;
+	yPos = y;
+	showPosition();
+}
+
+void Decabot::showPosition(){
+	String msg = sayMyName();
+	msg.concat(F(" position: x="));
+	msg.concat(xPos);
+	msg.concat(F(", y="));
+	msg.concat(yPos);
+	msg.concat(F(", heading="));
+	msg.concat(heading);
+	outputln(msg);
+}
 
 void Decabot::codeEnd(){
 	stepsToMove = 0; //stop moving
@@ -494,8 +542,8 @@ void Decabot::update(){
 			nextCommand();
 		}
 	}
-	if(millis()%5000==0){
-		//debug();
+	if(millis()%10000==0){
+		showPosition();
 	}
 	delay(1); //slow the code to not to run twice the update in the same millissecond
 }
@@ -516,5 +564,9 @@ int Decabot::poten(int base, int expoent){
 	return 1;
 	else   
 	return base * poten(base, expoent - 1);
+}
+
+float Decabot::radian(float degree){
+	return (degree * 71) / 4068;
 }
 
