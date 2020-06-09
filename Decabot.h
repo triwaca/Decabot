@@ -47,6 +47,7 @@ class Decabot
 		void codeDomino(char code[]);
 		void run();
 		void nextCommand();
+		char infiniteCode(int index);
 		void codeInterpreter(char command, int parameter);
 		void codeForward(int distance);
 		void codeForward(int distance,int speed);
@@ -56,6 +57,7 @@ class Decabot
 		void codeGoTo(int piece);
 		void codeRepeat(int times);
 		void codeStopRepeat();
+		void codeRunBlockMem(int block);
 		void codeWait(int timeWait);
 		void codeMusic(int toneFreq);
 		void setRadious(float radious);
@@ -102,8 +104,8 @@ class Decabot
 		long codeMillisBegin = 0;
 		//runtime repeat variables
 		int repeatCalls = 0;
-		int repeatPointers[5];
-		int repeatCounters[5];
+		int repeatPointers[64];
+		int repeatCounters[64];
 		//private moving functions
 		void updateSteps();
 		//private functions

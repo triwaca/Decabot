@@ -264,7 +264,7 @@ void Decabot::codeDomino(char code[]){
 	int i=0;
 	outputln(F("New program loaded on RAM!"));
 	Serial.print(F("\t"));
-	for(i=0;i<64;i++){
+	for(i=0;i<128;i++){
 		runningCode[i] = code[i]; //fill the given code to RAM
 		Serial.print(F("["));		
 		Serial.print(runningCode[i]);
@@ -295,25 +295,34 @@ void Decabot::run(){
 
 void Decabot::nextCommand(){
 	//call commands using the running Code Index variable and the runningCode array
-	if(!isDigit(runningCode[runningCodeIndex])){
+	if(!isDigit(infiniteCode(runningCodeIndex))){ //check if it is a letter
 		output(F("("));
 		Serial.print(runningCodeIndex+1);
 		Serial.print(F(")"));
 		int parameterDigits = 0;
 		int parameterData = 0;
 		//check how many numbers are after the command
-		while(isDigit(runningCode[runningCodeIndex+1+parameterDigits])){
+		while(isDigit(infiniteCode(runningCodeIndex+1+parameterDigits))){
 			parameterDigits++;
 		}
 		int j=0;
 		for(parameterDigits;parameterDigits>0;parameterDigits--){
-			parameterData = parameterData + ((int)(runningCode[runningCodeIndex+parameterDigits]) - 48) * poten(10,j); 
+			parameterData = parameterData + ((int)(infiniteCode(runningCodeIndex+parameterDigits)) - 48) * poten(10,j); 
 			j++;
 		}
-		codeInterpreter(runningCode[runningCodeIndex],parameterData);
+		codeInterpreter(infiniteCode(runningCodeIndex),parameterData);
 		runningCodeIndex++;
 	} else {
 		runningCodeIndex++;
+	}
+}
+
+char Decabot::infiniteCode(int index){
+	//treats RAM and EEPROM as a unique sequential memory
+	if(index<128){
+		return runningCode[index];
+	} else {
+		return EEPROM.read(index-128);
 	}
 }
 
@@ -327,6 +336,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='M') codeMusic(parameter);
 	if(command=='X') codeRepeat(parameter);
 	if(command=='Y') codeStopRepeat();
+	if(command=='Z') codeRunBlockMem(parameter);
 	if(command=='x') setPosition(parameter,yPos); //RFID commands for the arena
 	if(command=='y') setPosition(xPos,parameter); //RFID commands for the arena
 	if(command=='O') codeEnd();
@@ -455,23 +465,29 @@ void Decabot::showPosition(){
 }
 
 void Decabot::codeEnd(){
-	stepsToMove = 0; //stop moving
-	executing = 0;
-	Serial.print(F("[end] \n\tExecution time: "));
-	int runTime = round((millis() - codeMillisBegin)/1000); 
-	if(runTime<60){
-		Serial.print(runTime);
-		Serial.println(F(" second(s)"));
+	if(repeatCalls>0){
+		runningCodeIndex = repeatPointers[repeatCalls];
+		repeatCalls--;
+		Serial.println(F("[return to program]"));
 	} else {
-		int runTimeMin = round(runTime/60);
-		runTime = runTime%60;
-		Serial.print(runTimeMin);
-		Serial.print(F(" minute(s) and "));
-		Serial.print(runTime);
-		Serial.println(F(" second(s)"));
+		stepsToMove = 0; //stop moving
+		executing = 0;
+		Serial.print(F("[end] \n\tExecution time: "));
+		int runTime = round((millis() - codeMillisBegin)/1000); 
+		if(runTime<60){
+			Serial.print(runTime);
+			Serial.println(F(" second(s)"));
+		} else {
+			int runTimeMin = round(runTime/60);
+			runTime = runTime%60;
+			Serial.print(runTimeMin);
+			Serial.print(F(" minute(s) and "));
+			Serial.print(runTime);
+			Serial.println(F(" second(s)"));
+		}
+		soundEnd();
+		resetMotors();
 	}
-	soundEnd();
-	resetMotors();
 }
 
 void Decabot::codeGoTo(int piece){
@@ -492,16 +508,27 @@ void Decabot::codeRepeat(int times){
 	repeatCounters[repeatCalls] = times; //mark the number of repetitions of each interation
 }
 
+void Decabot::codeRunBlockMem(int block){
+	repeatCalls++; //increase the number of repetitions called
+	String msg = F("[run][");
+	msg.concat(block);
+	msg.concat(F("]mem"));
+	Serial.println(msg);
+	repeatPointers[repeatCalls] = runningCodeIndex + 1; //mark the begin of repetition, so the code can go back each interation
+	repeatCounters[repeatCalls] = 1; //doesn't have loop
+	runningCodeIndex = (block * 64) + 127; //pointer start running from EEPROM. Ex: block 3 will be 3*64+128 = index 320 in the infiniteCode();
+}
+
 void Decabot::codeStopRepeat(){
 	String msg = "";
 	if(repeatCounters[repeatCalls]>1){ //check if still needs to repeat
 		runningCodeIndex = repeatPointers[repeatCalls];
 		repeatCounters[repeatCalls]--;
-		msg.concat(F("[back to repeat]"));
+		msg.concat(F("[return to begin]"));
 		msg.concat(repeatCounters[repeatCalls]);
 		msg.concat(F("x"));
 	} else {
-		msg.concat(F("[stop repeat]"));
+		msg.concat(F("[return to code]"));
 		repeatCalls--;
 	}
 	Serial.println(msg);	
