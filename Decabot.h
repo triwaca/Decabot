@@ -26,6 +26,8 @@ class Decabot
 		void yourOwnerIs(String parameter);
 		void outputln(String message);
 		void output(String message);
+		void dumpMemory();
+		void formatROM(String name);
 		//sounds
 		void beep(int time);
 		void soundBegin();

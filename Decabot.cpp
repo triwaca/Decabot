@@ -90,7 +90,7 @@ void Decabot::whoAmI() {
 	tmp1.concat(sayMyName());
 	outputln(tmp1);
 	String owner = F("Owner: ");
-	for(int i=901;i<950;i++){
+	for(int i=919;i<967;i++){
 		owner.concat((char) EEPROM.read(i));
 	}
 	outputln(owner);
@@ -98,32 +98,45 @@ void Decabot::whoAmI() {
 
 String Decabot::sayMyName(){
 	decabotName = "";
-	for(int i=896;i<=900;i++){
+	for(int i=902;i<=906;i++){
 		decabotName.concat((char) EEPROM.read(i));
 	}
 	return decabotName;
 }
 
 void Decabot::yourNameIs(String parameter){
-      //change Decabot's tag name on EEPROM
-      soundRecording();
-      /*parameter.toCharArray(decabotName,6);
-      for(int i=0;i<=5;i++){
-        EEPROM.write(i + 896,decabotName[i]);
-      }
-      outputln(F("new name:"));
-      outputln(decabotName);*/
+	//change Decabot's tag name on EEPROM
+	soundRecording();
+	EEPROM.update(896,'[');
+	EEPROM.update(897,'n');
+	EEPROM.update(898,'a');
+	EEPROM.update(899,'m');
+	EEPROM.update(900,'e');
+	EEPROM.update(901,']');
+	for(int i=0;i<=11;i++){
+		if(parameter[i]=="") parameter[i] = " ";
+		EEPROM.update(i + 902,parameter[i]);
+	}
+	output(F("new name:"));
+	Serial.println(decabotName);
 }
 
 void Decabot::yourOwnerIs(String parameter){
-      //change decabot emails owner on EEPROM
-      soundRecording();
-      /*parameter.toCharArray(decabotOwner,50);
-      for(int i=0;i<=50;i++){
-        EEPROM.write(i + 902,decabotOwner[i]);
-      }
-      outputln(F("Decabot owner: "));
-      outputln(decabotOwner);*/
+	//change decabot emails owner on EEPROM
+	soundRecording();
+	EEPROM.update(912,'[');
+	EEPROM.update(913,'o');
+	EEPROM.update(914,'w');
+	EEPROM.update(915,'n');
+	EEPROM.update(916,'e');
+	EEPROM.update(917,'r');
+	EEPROM.update(918,']');
+	for(int i=0;i<48;i++){
+		if(parameter[i]=="") parameter[i] = " ";
+		EEPROM.update(i + 919,parameter[i]);
+	}
+	output(F("Decabot owner:"));
+	Serial.println(decabotOwner);
 }
 
 void Decabot::outputln(String message) {
@@ -137,6 +150,20 @@ void Decabot::outputln(String message) {
 	Serial.println(msg);
 }
 
+void Decabot::formatROM(String name){
+	if(1){
+		outputln("Formatting ROM...");
+		for(int i=0;i<EEPROM.length();i++){
+			EEPROM.update(i,'O');
+		}
+		outputln("Format complete!");
+		//yourNameIs(sayMyName());
+		dumpMemory();
+	} else {
+		outputln(F("To format you must input robot's name as a parameter"));
+	}
+}	
+
 void Decabot::output(String message) {
 	//Terminal-like output, with timestamp
 	//Doesnt break line at the end
@@ -146,6 +173,42 @@ void Decabot::output(String message) {
 	for(int i=0;i<repeatCalls;i++) msg.concat(F(" | "));
 	msg.concat(message);
 	Serial.print(msg);
+}
+
+void Decabot::dumpMemory(){
+	Serial.print("\t0");
+	for(int i=3;i<=64;i++){
+		if(i%16==0) {
+			Serial.print(i);
+		} else {
+			Serial.print(" ");
+		}
+	}
+	for(int i=0;i<EEPROM.length()+128;i++) {
+		if((i%16==0)&&(i%64!=0)) Serial.print(" ");
+		if(i%64==0) {
+			Serial.println("");
+			if(i<128){
+				Serial.print("RAM"); 
+			} else {
+				if(i<1024){
+					Serial.print("ROM");
+					Serial.print((i-128)/64);
+				} else {
+					if(i<1152){
+						Serial.print("ROBOT");
+					} else {
+						Serial.print("Flash");
+						Serial.print((i-128)/64);
+					}
+				}
+			}
+			Serial.print("\t");
+		}
+		Serial.print(infiniteCode(i));
+	}
+	Serial.println("");
+	outputln(F("Dump memory complete!"));
 }
 
 void Decabot::beep(int time){
