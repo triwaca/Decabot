@@ -90,7 +90,8 @@ void Decabot::whoAmI() {
 	tmp1.concat(sayMyName());
 	outputln(tmp1);
 	String owner = F("Owner: ");
-	for(int i=919;i<967;i++){
+	for(int i=917;i<960;i++){
+		if((char) EEPROM.read(i) == '[') break;
 		owner.concat((char) EEPROM.read(i));
 	}
 	outputln(owner);
@@ -99,13 +100,15 @@ void Decabot::whoAmI() {
 String Decabot::sayMyName(){
 	decabotName = "";
 	for(int i=902;i<=906;i++){
-		decabotName.concat((char) EEPROM.read(i));
+		if((char) EEPROM.read(i) == '[') break;
+		decabotName.concat((char) EEPROM.read(i));		
 	}
 	return decabotName;
 }
 
 void Decabot::yourNameIs(String parameter){
 	//change Decabot's tag name on EEPROM
+	decabotName = parameter;
 	soundRecording();
 	EEPROM.update(896,'[');
 	EEPROM.update(897,'n');
@@ -113,27 +116,31 @@ void Decabot::yourNameIs(String parameter){
 	EEPROM.update(899,'m');
 	EEPROM.update(900,'e');
 	EEPROM.update(901,']');
-	for(int i=0;i<=11;i++){
-		if(parameter[i]=="") parameter[i] = " ";
-		EEPROM.update(i + 902,parameter[i]);
+	int i=0;
+	for(i;i<=decabotName.length();i++){
+		EEPROM.update(i + 902,decabotName[i]);
 	}
+	EEPROM.update(i+902,'[');
+	EEPROM.update(i+903,'/');
+	EEPROM.update(i+904,']');
 	output(F("new name:"));
 	Serial.println(decabotName);
 }
 
 void Decabot::yourOwnerIs(String parameter){
 	//change decabot emails owner on EEPROM
+	decabotOwner = 	parameter.substring(0,42);
+	parameter.concat("[/]");
 	soundRecording();
 	EEPROM.update(912,'[');
 	EEPROM.update(913,'o');
 	EEPROM.update(914,'w');
 	EEPROM.update(915,'n');
-	EEPROM.update(916,'e');
-	EEPROM.update(917,'r');
-	EEPROM.update(918,']');
-	for(int i=0;i<48;i++){
-		if(parameter[i]=="") parameter[i] = " ";
-		EEPROM.update(i + 919,parameter[i]);
+	EEPROM.update(916,']');
+	int i=0;
+	for(i;i<parameter.length();i++){
+		if(i+917>959) break;
+		EEPROM.update(i + 917,parameter[i]);
 	}
 	output(F("Decabot owner:"));
 	Serial.println(decabotOwner);
@@ -206,6 +213,7 @@ void Decabot::dumpMemory(){
 			Serial.print("\t");
 		}
 		Serial.print(infiniteCode(i));
+		if(infiniteCode(i)==' ') Serial.print('-');
 	}
 	Serial.println("");
 	outputln(F("Dump memory complete!"));
