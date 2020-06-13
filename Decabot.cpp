@@ -398,19 +398,77 @@ char Decabot::infiniteCode(int index){
 }
 
 void Decabot::codeInterpreter(char command, int parameter){
-	if(command=='F') codeForward(parameter);
-	if(command=='L') codeLeft(parameter);
-	if(command=='R') codeRight(parameter);
-	if(command=='S') codeSpeed(parameter);
-	if(command=='B') codeGoTo(parameter);
-	if(command=='W') codeWait(parameter);
-	if(command=='M') codeMusic(parameter);
+	if(command=='A') unknowCode();
+	if(command=='a') unknowCode();
+	if(command=='B') codeGoTo(parameter);		//go to a position in code
+	if(command=='b') unknowCode();
+	if(command=='C') unknowCode();
+	if(command=='c') unknowCode();
+	if(command=='D') unknowCode();
+	if(command=='d') unknowCode();
+	if(command=='E') unknowCode();
+	if(command=='e') unknowCode();
+	if(command=='F') codeForward(parameter);	//move forward
+	if(command=='f') unknowCode();
+	if(command=='G') unknowCode();
+	if(command=='g') unknowCode();
+	if(command=='H') unknowCode();
+	if(command=='h') unknowCode();
+	if(command=='I') unknowCode();
+	if(command=='i') unknowCode();
+	if(command=='J') unknowCode();
+	if(command=='j') unknowCode();
+	if(command=='K') unknowCode();
+	if(command=='k') unknowCode();
+	if(command=='L') codeLeft(parameter);		//turn left
+	if(command=='l') unknowCode();
+	if(command=='M') codeMusic(parameter);		//play sound
+	if(command=='m') unknowCode();
+	if(command=='N') unknowCode();
+	if(command=='n') unknowCode();
+	if(command=='O') codeEnd();			//end of block of code
+	if(command=='o') unknowCode();
+	if(command=='P') unknowCode();
+	if(command=='p') unknowCode();
+	if(command=='Q') unknowCode();
+	if(command=='q') unknowCode();
+	if(command=='R') codeRight(parameter);		//turn right
+	if(command=='r') unknowCode();
+	if(command=='S') codeSpeed(parameter);		//set temporary motor speed
+	if(command=='s') unknowCode();
+	if(command=='T') unknowCode();
+	if(command=='t') unknowCode();
+	if(command=='U') unknowCode();
+	if(command=='u') unknowCode();
+	if(command=='V') unknowCode();
+	if(command=='W') codeWait(parameter);		//wait 
+	if(command=='w') unknowCode();
 	if(command=='X') codeRepeat(parameter);
+	if(command=='x') setPosition(parameter,yPos);	//define the X position in the arena
 	if(command=='Y') codeStopRepeat();
+	if(command=='y') setPosition(xPos,parameter);	//defune the Y position in the arena
 	if(command=='Z') codeRunBlockMem(parameter);
-	if(command=='x') setPosition(parameter,yPos); //RFID commands for the arena
-	if(command=='y') setPosition(xPos,parameter); //RFID commands for the arena
-	if(command=='O') codeEnd();
+	if(command=='z') unknowCode();
+	if(command=='[') programName(runningCodeIndex);
+}
+
+String Decabot::programName(int memoryPosition){
+	String name;	
+	memoryPosition++;	
+	while(infiniteCode(memoryPosition)!=']'){
+		name.concat(infiniteCode(memoryPosition));
+		memoryPosition++;
+	}
+	runningCodeIndex = memoryPosition;
+	String msg = F("program [");
+	msg.concat(name);
+	msg.concat("]");
+	outputln(msg);
+	return name;
+}
+
+void Decabot::unknowCode(){
+	outputln("Unknow command");
 }
 
 void Decabot::codeForward(int distance){

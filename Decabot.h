@@ -11,6 +11,8 @@
 #include <EEPROM.h>
 #include <ArduinoUniqueID.h>
 
+#define code_square "[square]X4FLYO"
+
 // library interface description
 class Decabot
 {
@@ -69,6 +71,8 @@ class Decabot
 		void incrementXYPosition(float distanceForward);
 		void showPosition();
 		void codeEnd();
+		void unknowCode();
+		String programName(int memoryPosition);
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
 		int clockPin = 7; //Pin connected to SH_CP of 74HC595
@@ -104,6 +108,13 @@ class Decabot
 		long lastLeftMillis = 0;
 		long lastRightMillis = 0;
 		long codeMillisBegin = 0;
+		//Code Domino User variables
+		int varX = 10;
+		int varY = 90;
+		int varZ = 4;
+		float varN = 0;
+		float varP = 0;
+		float varQ = 0;
 		//runtime repeat variables
 		int repeatCalls = 0;
 		int repeatPointers[64];
