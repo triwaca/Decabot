@@ -496,7 +496,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='x') setPosition(parameter,yPos);	//define the X position in the arena
 	if(command=='Y') codeStopRepeat();
 	if(command=='y') setPosition(xPos,parameter);	//defune the Y position in the arena
-	if(command=='Z') codeRunBlockMem(parameter);
+	if(command=='Z') codeRunBlockMem(parameter);	//run a block of code from ROM
 	if(command=='z') unknowCode();
 	if(command=='[') programName(runningCodeIndex);
 }

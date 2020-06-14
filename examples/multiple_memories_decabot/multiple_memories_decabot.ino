@@ -23,7 +23,7 @@ void setup() {
   //save 3 codes on decabot's memory blocks
   robot.codeDomino("S0[square]X4FLYO");
   robot.codeDomino("S1[circle]X36F1L10YO");
-  robot.codeDomino("S2[triangle]X3FL150YO");
+  robot.codeDomino("S2[triangle]X3FL120YO");
   //execute (Z) the 3 drawings
   robot.codeDomino("[3draws]Z0FZ1FZ2O"); 
   robot.run();
