@@ -72,6 +72,7 @@ class Decabot
 		void showPosition();
 		void codeEnd();
 		void unknowCode();
+		void saveCodeROM(int memoryBlock);
 		String programName(int memoryPosition);
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595

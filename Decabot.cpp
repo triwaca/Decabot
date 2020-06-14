@@ -331,29 +331,78 @@ void Decabot::right(int degrees){
 }
 
 void Decabot::codeDomino(char code[]){
-	//loads codeDomino on RAM
-	int i=0;
-	outputln(F("New program loaded on RAM!"));
-	Serial.print(F("\t"));
-	for(i=0;i<128;i++){
-		runningCode[i] = code[i]; //fill the given code to RAM
-		Serial.print(F("["));		
-		Serial.print(runningCode[i]);
-		Serial.print(F("]"));		
-		if(runningCode[i]=='O') break;
-	}
-	Serial.println("");
-	Serial.print(F("\t "));
-	for(int j=0;j<=i;j++){
-		Serial.print(j+1);
-		if(j<8) {
-			Serial.print("  ");
-		} else {
-			Serial.print(" ");
+	//loads codeDomino on RAM or ROM
+	if(code[0]=='S') {	//if the first piece of code is Save
+		outputln("Saving program on ROM...");
+		soundRecording();
+		int parameterDigits = 0;
+		int parameterData = 0;
+		//check how many numbers are after the command Save
+		while(isDigit(code[1+parameterDigits])){
+			parameterDigits++;
 		}
+		int j=0;
+		for(int k = parameterDigits;k>0;k--){
+			parameterData = parameterData + ((int)(code[k]) - 48) * poten(10,j); 
+			j++;
+		}
+		//define the memory block address by the parameter after command Save
+		int memoryBlock = parameterData;
+		int i=0;
+		for(i;i<128;i++){
+			EEPROM.update(i + (memoryBlock*64),code[i+parameterDigits+1]);
+			if(code[i] == 'O') break;
+		}
+		while(i%64!=0) {
+			//fill the rest of memory block with end command
+			EEPROM.update(i + (memoryBlock*64),'O');
+			i++;
+		}
+		programName(memoryBlock*64+128);
+		outputln("Complete!");
+	} else {
+		outputln(F("New program loaded on RAM!"));
+		Serial.print(F("\t"));
+		int i=0;
+		for(i=0;i<128;i++){
+			runningCode[i] = code[i]; //fill the given code to RAM
+			Serial.print(F("["));		
+			Serial.print(runningCode[i]);
+			Serial.print(F("]"));		
+			if(runningCode[i]=='O') break;
+		}
+		Serial.println("");
+		Serial.print(F("\t "));
+		for(int j=0;j<=i;j++){
+			Serial.print(j+1);
+			if(j<8) {
+				Serial.print("  ");
+			} else {
+				Serial.print(" ");
+			}
+		}
+		Serial.println("");
+		for(i;i<128;i++) runningCode[i]='O'; //fill the rest of the array with End command
 	}
-	Serial.println("");
-	for(i;i<128;i++) runningCode[i]='O'; //fill the rest of the array with End command
+}
+
+void Decabot::saveCodeROM(int memoryBlock) {
+	/*
+	outputln("Saving program on ROM...");
+	soundRecording();	
+	int i=0;
+	for(i;i<128;i++){
+		EEPROM.update(i + (memoryBlock*64),runningCode[i]);
+		if(runningCode[i] == 'O') break;
+	}
+	runningCodeIndex = i; //ends the execution of the code imediatelly
+	while(i%64!=0) {
+		//fill the rest of memory block with end command
+		EEPROM.update(i + (memoryBlock*64),'O');
+		i++;
+	}
+	outputln("Complete!");
+	*/
 }
 
 void Decabot::run(){
@@ -410,7 +459,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='e') unknowCode();
 	if(command=='F') codeForward(parameter);	//move forward
 	if(command=='f') unknowCode();
-	if(command=='G') unknowCode();
+	if(command=='G') saveCodeROM(parameter);
 	if(command=='g') unknowCode();
 	if(command=='H') unknowCode();
 	if(command=='h') unknowCode();
@@ -434,8 +483,8 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='q') unknowCode();
 	if(command=='R') codeRight(parameter);		//turn right
 	if(command=='r') unknowCode();
-	if(command=='S') codeSpeed(parameter);		//set temporary motor speed
-	if(command=='s') unknowCode();
+	if(command=='S') saveCodeROM(parameter);
+	if(command=='s') codeSpeed(parameter);		//set temporary motor speed
 	if(command=='T') unknowCode();
 	if(command=='t') unknowCode();
 	if(command=='U') unknowCode();
@@ -453,13 +502,17 @@ void Decabot::codeInterpreter(char command, int parameter){
 }
 
 String Decabot::programName(int memoryPosition){
-	String name;	
-	memoryPosition++;	
-	while(infiniteCode(memoryPosition)!=']'){
-		name.concat(infiniteCode(memoryPosition));
-		memoryPosition++;
+	String name;
+	if(infiniteCode(memoryPosition)!='[') {
+		name = "unknow";	
+	} else {
+		memoryPosition++;	
+		while(infiniteCode(memoryPosition)!=']'){
+			name.concat(infiniteCode(memoryPosition));
+			memoryPosition++;
+		}
+		runningCodeIndex = memoryPosition;
 	}
-	runningCodeIndex = memoryPosition;
 	String msg = F("program [");
 	msg.concat(name);
 	msg.concat("]");
