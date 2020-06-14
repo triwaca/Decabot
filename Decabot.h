@@ -22,6 +22,8 @@ class Decabot
 		~Decabot();
 		//basics
 		void boot();
+		void inputSerial(char dataSerial);
+		void runCodeOnSerial();
 		void whoAmI();
 		String sayMyName();
 		void yourNameIs(String parameter);
@@ -82,6 +84,7 @@ class Decabot
 		int ledPin = 2; //Pin connected to frontal LED
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
+		String inputSerialString;
 		//movements variables
 		int millisDelay = 4;
 		int leftStep = 0;

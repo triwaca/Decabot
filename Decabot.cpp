@@ -37,6 +37,19 @@ void Decabot::boot(){
 	outputln(F("READY!"));
 }
 
+void Decabot::inputSerial(char dataSerial) {
+	inputSerialString += dataSerial;
+	if (dataSerial == '\n') {
+		runCodeOnSerial();
+		inputSerialString = "";
+	}
+}
+
+void Decabot::runCodeOnSerial(){
+	//receive Code Domino data thru serial and run
+	outputln(inputSerialString);
+}
+
 void Decabot::resetMotors() {
 	updateMotors(B00000000);
 	outputln(F("Reset motors"));
@@ -269,31 +282,32 @@ void Decabot::soundEnd() {
 }
 
 void Decabot::soundRecording() {
-      //sound played everytime something is recorded in EEPROM
-      for(int x=0;x<3;x++){
-        beep(50);
-        delay(50);
-      }
+	//sound played everytime something is recorded in EEPROM
+	for(int x=0;x<3;x++){
+		beep(50);
+		delay(50);
+	}
+	delay(200);
 }
 
 void Decabot::oneStepLeft(int dir) {
-      if(dir==1){
-        leftStep++;
-      } else {
-        leftStep--;
-      }
-      if(leftStep>4) leftStep = 1;
-      if(leftStep<1) leftStep = 4;
-    }
+	if(dir==1){
+		leftStep++;
+	} else {
+		leftStep--;
+	}
+	if(leftStep>4) leftStep = 1;
+	if(leftStep<1) leftStep = 4;
+}
 
 void Decabot::oneStepRight(int dir) {
-      if(dir==1){
-        rightStep++;
-      } else {
-        rightStep--;
-      }
-      if(rightStep>4) rightStep = 1;
-      if(rightStep<1) rightStep = 4;
+	if(dir==1){
+		rightStep++;
+	} else {
+		rightStep--;
+	}
+	if(rightStep>4) rightStep = 1;
+	if(rightStep<1) rightStep = 4;
 }
 
 void Decabot::move(int distance, int leftDirection, int RightDirection){
