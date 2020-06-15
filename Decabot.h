@@ -50,10 +50,12 @@ class Decabot
 		void right(int degrees);
 		//buttons
 		int readButton();
+		void executeButton(int button);
 		//Code Domino
 		void update();
 		void codeDomino(char code[]);
 		void run();
+		void run(int blockMemory);
 		void nextCommand();
 		char infiniteCode(int index);
 		void codeInterpreter(char command, int parameter);
@@ -78,6 +80,9 @@ class Decabot
 		void unknowCode();
 		void saveCodeROM(int memoryBlock);
 		String programName(int memoryPosition);
+		//RFID functions
+		void rfidCodeRecord();
+		void rfidCodeRecord(int blockMemory);
 	private:
 		int latchPin = 8; //Pin connected to ST_CP of 74HC595
 		int clockPin = 7; //Pin connected to SH_CP of 74HC595

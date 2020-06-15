@@ -98,9 +98,62 @@ int Decabot::readButton() {
 		msg.concat(pressedButton);
 		msg.concat(F(" pressed!"));
 		outputln(msg);
+		executeButton(pressedButton);
 	}
 }
 
+void Decabot::executeButton(int button){
+	switch(button){
+		case 1:		//play button
+			run();
+			break;
+		case 2:		//memory blocks 1 to 4
+			run(0);
+			break;
+		case 3:		//memory blocks 1 to 4
+			run(1);
+			break;
+		case 4:		//memory blocks 1 to 4
+			run(2);
+			break;
+		case 5:		//memory blocks 1 to 4
+			run(3);
+			break;
+		case 6:		//memory blocks 1 to 4
+			if(executing) {
+				codeEnd();
+			} else {
+				rfidCodeRecord();
+			}
+			break;
+		case 7:
+			dumpMemory();
+			break;
+		case 8:
+			rfidCodeRecord(0);
+			break;
+		case 9:
+			rfidCodeRecord(0);
+			break;
+		case 10:
+			rfidCodeRecord(0);
+			break;
+		case 11:
+			rfidCodeRecord(0);
+			break;
+		case 12:
+			formatROM("a");
+			break;
+	}
+}
+
+void Decabot::rfidCodeRecord() {
+	outputln("RFID not implemented yet!");
+}
+
+void Decabot::rfidCodeRecord(int blockMemory) {
+	outputln("RFID not implemented yet!");
+}
 
 void Decabot::resetMotors() {
 	updateMotors(B00000000);
@@ -474,6 +527,14 @@ void Decabot::saveCodeROM(int memoryBlock) {
 void Decabot::run(){
 	soundBegin();
 	runningCodeIndex = 0;
+	codeMillisBegin = millis();
+	executing = 1;
+	nextCommand();
+}
+
+void Decabot::run(int blockMemory){
+	soundBegin();
+	runningCodeIndex = (blockMemory * 64) + 128;
 	codeMillisBegin = millis();
 	executing = 1;
 	nextCommand();
