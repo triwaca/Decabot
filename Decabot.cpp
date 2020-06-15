@@ -483,11 +483,14 @@ void Decabot::codeDomino(char code[]){
 		outputln(F("New program loaded on RAM!"));
 		Serial.print(F("\t"));
 		int i=0;
+		bool writingName = 0;
 		for(i=0;i<128;i++){
 			runningCode[i] = code[i]; //fill the given code to RAM
-			Serial.print(F("["));		
+			if(runningCode[i]=='[') writingName = 1;
+			if(!writingName) Serial.print(F("[")); else Serial.print(F(" "));		
 			Serial.print(runningCode[i]);
-			Serial.print(F("]"));		
+			if(!writingName) Serial.print(F("]")); else Serial.print(F(" "));		
+			if(runningCode[i]==']') writingName = 0;
 			if(runningCode[i]=='O') break;
 		}
 		Serial.println("");
