@@ -48,6 +48,8 @@ class Decabot
 		void forward(int centimeters);
 		void left(int degrees);
 		void right(int degrees);
+		//buttons
+		int readButton();
 		//Code Domino
 		void update();
 		void codeDomino(char code[]);
@@ -123,6 +125,10 @@ class Decabot
 		int repeatCalls = 0;
 		int repeatPointers[64];
 		int repeatCounters[64];
+		//button variables
+		long timerButton = 0;
+		bool lastButtonState = 0;
+		int lastButtonValue = 0;
 		//private moving functions
 		void updateSteps();
 		//private functions

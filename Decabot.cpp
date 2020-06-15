@@ -38,6 +38,7 @@ void Decabot::boot(){
 }
 
 void Decabot::inputSerial(char dataSerial) {
+	//acumulates the serial data on a variable, and executes it when receive the end of line
 	inputSerialString += dataSerial;
 	if (dataSerial == '\n') {
 		runCodeOnSerial();
@@ -47,8 +48,59 @@ void Decabot::inputSerial(char dataSerial) {
 
 void Decabot::runCodeOnSerial(){
 	//receive Code Domino data thru serial and run
-	outputln(inputSerialString);
+	int serialCodeSize = inputSerialString.length() + 1;
+	char inputSerialChar[serialCodeSize]; 
+	inputSerialString.toCharArray(inputSerialChar, serialCodeSize);	//convert string to char
+	if(inputSerialString[0]=='['){		//checkif it is a code Domino
+		codeDomino(inputSerialChar);
+	} else {
+		outputln(inputSerialString);	//echo serial data
+	}
 }
+
+int Decabot::readButton() {
+	int buttonValue = analogRead(A0);
+	int pressedButton = 0;
+	if((buttonValue > 200)&&(timerButton + 1000 < millis())){
+		tone(buzzerPin, 440, 200);	//beep on hold
+	}
+	if((buttonValue > 200)&&!lastButtonState){
+		beep(100);
+		lastButtonState = 1;
+		lastButtonValue = buttonValue;
+		timerButton = millis();
+		digitalWrite(ledPin, 1);
+	}
+	if((buttonValue <= 200)&&lastButtonState){
+		noTone(buzzerPin);
+		lastButtonState = 0;
+		digitalWrite(ledPin, 0);
+		long actualTimer = millis();
+		if(lastButtonValue<709) {
+			pressedButton = 6;
+		} else if(lastButtonValue<761){
+			pressedButton = 5;
+		} else if(lastButtonValue<822){
+			pressedButton = 4;
+		} else if(lastButtonValue<894){
+			pressedButton = 3;
+		} else if(lastButtonValue<977){
+			pressedButton = 2;
+		} else {
+			pressedButton = 1;
+		}
+		if(timerButton + 1000 < actualTimer){	//long press detected increases return number by 6
+			pressedButton += 6;
+			//Serial.println(timerButton);
+			//Serial.println(lastButtonValue);
+		}
+		String msg = F("button ");
+		msg.concat(pressedButton);
+		msg.concat(F(" pressed!"));
+		outputln(msg);
+	}
+}
+
 
 void Decabot::resetMotors() {
 	updateMotors(B00000000);
@@ -781,6 +833,7 @@ void Decabot::update(){
 	if(millis()%10000==0){
 		showPosition();
 	}
+	readButton();
 	delay(1); //slow the code to not to run twice the update in the same millissecond
 }
 
