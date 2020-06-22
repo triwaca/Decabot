@@ -15,6 +15,9 @@ Decabot::Decabot(int delay)
 	pinMode(latchPin, OUTPUT);
 	pinMode(clockPin, OUTPUT);
 	pinMode(dataPin, OUTPUT);
+	pinMode(trigPin, OUTPUT);
+	pinMode(echoPin, INPUT);
+	digitalWrite(trigPin, LOW);
 }
 
 Decabot::~Decabot() 
@@ -25,6 +28,9 @@ Decabot::~Decabot()
 	pinMode(latchPin, OUTPUT);
 	pinMode(clockPin, OUTPUT);
 	pinMode(dataPin, OUTPUT);
+	pinMode(trigPin, OUTPUT);
+	pinMode(echoPin, INPUT);
+	digitalWrite(trigPin, LOW);
 }
 
 void Decabot::boot(){
@@ -894,11 +900,50 @@ void Decabot::update(){
 			nextCommand();
 		}
 	}
+	if(millis()%500==0){
+		objectDetection();
+	}
 	if(millis()%10000==0){
 		showPosition();
 	}
 	readButton();
 	delay(1); //slow the code to not to run twice the update in the same millissecond
+}
+
+double Decabot::measureDistance(){
+	ultrasonicTimer = millis();
+	// Pulso de 5V por pelo menos 10us para iniciar medição.
+	// 5V pulse by at least 10 milisseconds to measure
+	digitalWrite(trigPin, HIGH);
+	delayMicroseconds(11);
+	digitalWrite(trigPin, LOW);
+	uint32_t pulseTime = pulseIn(echoPin, HIGH);
+	double distance = 0.01715 * pulseTime;
+	// filter if the sensor is not installed, or high imprecise data
+	if((distance!=0)&&(distance<120)){
+		return distance;
+	} else {
+		return 0;
+	}
+}
+
+void Decabot::objectDetection(){
+	double hip = measureDistance(); //hipotenusa receives measured distance from ultrasonic
+	if(hip!=0){ //check if the ultrasonic sensor is installed
+		if(!((hip>=lastDetection-1)&&(hip<=lastDetection+1))){ //removes noise from ultrasonic reading
+			int objX = (cos(radian(heading)) * hip) + xPos;
+			int objY = (sin(radian(heading)) * hip) + xPos;
+			String msg = F("[obs] Obstacle detected in [x]");
+			msg.concat(objX);
+			msg.concat(" [y]");
+			msg.concat(objY);
+			msg.concat(" (dist ");
+			msg.concat(hip);
+			msg.concat("cm)");
+			outputln(msg);
+			lastDetection = hip;
+		}
+	}
 }
 
 void Decabot::debug(){

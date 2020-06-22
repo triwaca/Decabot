@@ -83,12 +83,17 @@ class Decabot
 		//RFID functions
 		void rfidCodeRecord();
 		void rfidCodeRecord(int blockMemory);
+		//ultrasonic functions
+		double measureDistance();
+		void objectDetection();
 	private:
-		int latchPin = 8; //Pin connected to ST_CP of 74HC595
-		int clockPin = 7; //Pin connected to SH_CP of 74HC595
-		int dataPin = 6; //Pin connected to DS of 74HC595
-		int buzzerPin = 3; //Pin connected to buzzer
-		int ledPin = 2; //Pin connected to frontal LED
+		int latchPin = 8;	//Pin connected to ST_CP of 74HC595
+		int clockPin = 7;	//Pin connected to SH_CP of 74HC595
+		int dataPin = 6;	//Pin connected to DS of 74HC595
+		int trigPin = 5;	//Pin connected to HC-SR04 ultrasonic
+		int echoPin = 4;	//Pin connected to HC-SR04 ultrasonic
+		int buzzerPin = 3;	//Pin connected to buzzer
+		int ledPin = 2;		//Pin connected to frontal LED
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
 		String inputSerialString;
@@ -134,6 +139,9 @@ class Decabot
 		long timerButton = 0;
 		bool lastButtonState = 0;
 		int lastButtonValue = 0;
+		//Ultrasonic measure variables
+		uint32_t ultrasonicTimer;
+		double lastDetection = 0;
 		//private moving functions
 		void updateSteps();
 		//private functions
