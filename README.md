@@ -53,6 +53,7 @@ void loop() {
 }
 ```
 Where the codeDomino() function must contain the code. Commands are represented by letters, and parameters are numbers:
+* [] text between simply brackets is the Code Domino's name, and is ignored by the Decabot;
 * X4 repeats the following commands 4 times;
 * F goes forward. As it doesn't have a numeric parameter, the standard value is 10cm;
 * L goes left. As it doesn't have a numeric parameter, the standard value is 90°;
