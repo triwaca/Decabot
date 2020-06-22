@@ -52,10 +52,24 @@ void loop() {
   robot.update();         //update state of Code Domino machine
 }
 ```
-Where the codeDomino() function must contain the code. Commands are represented by letters, and parameters are numbers:
-* [] text between simply brackets is the Code Domino's name, and is ignored by the Decabot;
-* X4 repeats the following commands 4 times;
-* F goes forward. As it doesn't have a numeric parameter, the standard value is 10cm;
-* L goes left. As it doesn't have a numeric parameter, the standard value is 90°;
-* Y ends the repeat loop;
-* O ends the code.
+Where the codeDomino() function must contain the String code. Commands are represented by letters, and parameters are numbers:
+* **[ ]** text between simply brackets is the Code Domino's name, and is ignored by the Decabot;
+* **X4** repeats the following commands 4 times;
+* **F** goes forward. As it doesn't have a numeric parameter, the standard value is 10cm;
+* **L** goes left. As it doesn't have a numeric parameter, the standard value is 90°;
+* **Y** ends the repeat loop;
+* **O** ends the code.
+
+A list of Code Domino commands can be found at documentation folder. 
+
+### Send CD codes through Serial
+
+You can send Code Domino commands through Serial, by including this serialEvent() function after the loop():
+```
+void serialEvent() {      //allows the robot to receive data from Serial
+  while (Serial.available()) {
+    robot.inputSerial((char)Serial.read());
+  }
+}
+```
+See the documentation for other ways to run Code Domino on your Decabot!
