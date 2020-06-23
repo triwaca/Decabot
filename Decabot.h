@@ -12,6 +12,7 @@
 #include <ArduinoUniqueID.h>
 
 #define code_square "[square]X4FLYO"
+#define code_scan "[scan]L45u5Ru2L45O"
 
 // library interface description
 class Decabot
@@ -76,6 +77,7 @@ class Decabot
 		void setHeading(float degrees);
 		void incrementXYPosition(float distanceForward);
 		void showPosition();
+		void adjustHeading();
 		void codeEnd();
 		void unknowCode();
 		void saveCodeROM(int memoryBlock);
@@ -86,6 +88,7 @@ class Decabot
 		//ultrasonic functions
 		double measureDistance();
 		void objectDetection();
+		void codeScanObjectPrecision(int range);
 	private:
 		int latchPin = 8;	//Pin connected to ST_CP of 74HC595
 		int clockPin = 7;	//Pin connected to SH_CP of 74HC595
@@ -142,6 +145,8 @@ class Decabot
 		//Ultrasonic measure variables
 		uint32_t ultrasonicTimer;
 		double lastDetection = 0;
+		int objectDetectionDelay = 500;
+		int rotatingTotal = 0;
 		//private moving functions
 		void updateSteps();
 		//private functions

@@ -60,7 +60,8 @@ void Decabot::runCodeOnSerial(){
 	if(inputSerialString[0]=='['){		//checkif it is a code Domino
 		codeDomino(inputSerialChar);
 	} else {
-		outputln(inputSerialString);	//echo serial data
+		codeInterpreter(inputSerialString[0], 0);
+		//outputln(inputSerialString);	//echo serial data
 	}
 }
 
@@ -618,13 +619,13 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='Q') unknowCode();
 	if(command=='q') unknowCode();
 	if(command=='R') codeRight(parameter);		//turn right
-	if(command=='r') unknowCode();
+	if(command=='r') run();
 	if(command=='S') saveCodeROM(parameter);
 	if(command=='s') codeSpeed(parameter);		//set temporary motor speed
 	if(command=='T') unknowCode();
 	if(command=='t') unknowCode();
-	if(command=='U') unknowCode();
-	if(command=='u') unknowCode();
+	if(command=='U') objectDetection();
+	if(command=='u') codeScanObjectPrecision(parameter);
 	if(command=='V') unknowCode();
 	if(command=='W') codeWait(parameter);		//wait 
 	if(command=='w') unknowCode();
@@ -635,6 +636,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='Z') codeRunBlockMem(parameter);	//run a block of code from ROM
 	if(command=='z') unknowCode();
 	if(command=='[') programName(runningCodeIndex);
+	if(command=='?') showPosition();
 }
 
 String Decabot::programName(int memoryPosition){
@@ -672,6 +674,8 @@ void Decabot::codeForward(int distance){
 	stepsToMove += distance * 100; //transform distance in steps
 	//self position
 	incrementXYPosition(distance);
+	//ultrasonic
+	lastDetection = 0; //resets the detection
 }
 
 void Decabot::codeForward(int distance,int speed){
@@ -686,6 +690,8 @@ void Decabot::codeForward(int distance,int speed){
 	stepsToMove += distance * 100; //transform distance in steps
 	//self position
 	incrementXYPosition(distance);
+	//ultrasonic
+	lastDetection = 0; //resets the detection
 }
 
 void Decabot::setHeading(float degrees){
@@ -712,10 +718,13 @@ void Decabot::codeLeft(int degrees){
 	turningLeft = 1;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
+	rotatingTotal = heading + degrees;
+	/*
 	//self position
 	heading += degrees;
 	if(heading>360) heading -= 360;
 	if(heading<0) heading += 360;
+	*/
 }
 
 void Decabot::codeRight(int degrees){
@@ -730,10 +739,26 @@ void Decabot::codeRight(int degrees){
 	turningLeft = 0;
 	moving = 1;
 	stepsToMove = degrees * 7.8;
+	rotatingTotal = heading - degrees;
+	/*
+	rotatingTotal = stepsToMove; //variable to help adjustHeading to calculate angle in real time
 	//self position
 	heading -= degrees;
 	if(heading>360) heading -= 360;
 	if(heading<0) heading += 360;
+	*/
+}
+
+void Decabot::adjustHeading(){
+	if(leftDirection&&!rightDirection) heading += 0.064102564;
+	if(!leftDirection&&rightDirection) heading -= 0.064102564;
+	if(heading>360) heading -= 360;
+	if(heading<0) heading += 360;
+	if(millis()%500==0) {
+		String msg = F("[heading]");
+		msg.concat(heading);
+		outputln(msg);
+	}
 }
 
 void Decabot::codeSpeed(int speed){
@@ -884,8 +909,13 @@ void Decabot::updateSteps(){
 			oneStepRight(rightDirection);
 			if(!turningLeft) stepsToMove--;
 		}
+		adjustHeading();
 	} else {
 		moving = 0;
+		//recalibrate the heading after the spin
+		heading = rotatingTotal;
+		if(heading>=360) heading -= 360;
+		if(heading<0) heading += 360;
 	}
 }
 
@@ -900,7 +930,7 @@ void Decabot::update(){
 			nextCommand();
 		}
 	}
-	if(millis()%500==0){
+	if(millis()%objectDetectionDelay==0){ //object detection doesn't work while moving, because the self position is not incremental
 		objectDetection();
 	}
 	if(millis()%10000==0){
@@ -918,9 +948,9 @@ double Decabot::measureDistance(){
 	delayMicroseconds(11);
 	digitalWrite(trigPin, LOW);
 	uint32_t pulseTime = pulseIn(echoPin, HIGH);
-	double distance = 0.01715 * pulseTime;
+	double distance = 5 + 0.01715 * pulseTime; //plus 5 centimeters, because the sensor is on the edge of the robot
 	// filter if the sensor is not installed, or high imprecise data
-	if((distance!=0)&&(distance<120)){
+	if((distance!=0)&&(distance<100)){
 		return distance;
 	} else {
 		return 0;
@@ -944,6 +974,15 @@ void Decabot::objectDetection(){
 			lastDetection = hip;
 		}
 	}
+}
+
+void Decabot::codeScanObjectPrecision(int range){
+	//set from 1 to 5 the precision of scanning objects
+	objectDetectionDelay = map(range,1,5,1000,100);
+	String msg = F("[scan precision] level [");
+	msg.concat(range);
+	msg.concat(F("]"));
+	Serial.println(msg);
 }
 
 void Decabot::debug(){
