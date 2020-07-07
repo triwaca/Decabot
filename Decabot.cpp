@@ -327,21 +327,32 @@ void Decabot::dumpMemory(){
 		if(i%64==0) {
 			Serial.println("");
 			if(i<128){
-				Serial.print("RAM"); 
+				Serial.print("[RAM"); 
 			} else {
-				if(i<1024){
-					Serial.print("ROM");
+			
+				if(i<768){
+					Serial.print("[ROM");
 					Serial.print((i-128)/64);
 				} else {
-					if(i<1152){
-						Serial.print("ROBOT");
+					if(i<832){
+						Serial.print("[SETUP");
 					} else {
-						Serial.print("Flash");
-						Serial.print((i-128)/64);
+						if(i<1024){
+							Serial.print("[LOOP");
+							Serial.print(((i-128)/64)-10);
+						} else {
+							if(i<1152){
+								Serial.print("[ROBOT");
+							} else {
+								Serial.print("Flash");
+								Serial.print((i-128)/64);
+							}
+						}
 					}
 				}
+
 			}
-			Serial.print("\t");
+			Serial.print("]\t");
 		}
 		Serial.print(infiniteCode(i));
 		if(infiniteCode(i)==' ') Serial.print('-');
