@@ -208,26 +208,31 @@ void Decabot::updateMotors(){
 }
 
 void Decabot::whoAmI() {
-	//OUtputs tag name and owner e-mail of Decabot
+	//Loads from EEPROM and outputs tag name and owner e-mail of Decabot
 	Serial.print(F("\t"));
 	UniqueIDdump(Serial);
-	String tmp1 = F("Decabot Name: ");
-	tmp1.concat(sayMyName());
-	outputln(tmp1);
-	String owner = F("Owner: ");
-	for(int i=917;i<960;i++){
-		if((char) EEPROM.read(i) == '[') break;
-		owner.concat((char) EEPROM.read(i));
-	}
-	outputln(owner);
-}
-
-String Decabot::sayMyName(){
+	//load form EEPROM and put in RAM
 	decabotName = "";
 	for(int i=902;i<=906;i++){
 		if((char) EEPROM.read(i) == '[') break;
 		decabotName.concat((char) EEPROM.read(i));		
 	}
+	decabotOwner = "";
+	for(int i=917;i<960;i++){
+		if((char) EEPROM.read(i) == '[') break;
+		decabotOwner.concat((char) EEPROM.read(i));
+	}
+	tmpOutput = F("[name][");
+	tmpOutput.concat(decabotName);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
+	tmpOutput = F("[owner][");
+	tmpOutput.concat(decabotOwner);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
+}
+
+String Decabot::sayMyName(){
 	return decabotName;
 }
 
@@ -267,8 +272,9 @@ void Decabot::yourOwnerIs(String parameter){
 		if(i+917>959) break;
 		EEPROM.update(i + 917,parameter[i]);
 	}
-	output(F("Decabot owner:"));
-	Serial.println(decabotOwner);
+	output(F("Decabot [owner]["));
+	Serial.print(decabotOwner);
+	Serial.println(F("][/]"));
 }
 
 void Decabot::outputln(String message) {
@@ -487,7 +493,7 @@ void Decabot::codeDomino(char code[]){
 		programName(memoryBlock*64+128);
 		outputln("Complete!");
 	} else {
-		outputln(F("New program loaded on RAM!"));
+		output(F("New program loaded on RAM!\n[load]"));
 		Serial.print(F("\t"));
 		int i=0;
 		bool writingName = 0;
@@ -611,7 +617,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='M') codeMusic(parameter);		//play sound
 	if(command=='m') unknowCode();
 	if(command=='N') unknowCode();
-	if(command=='n') unknowCode();
+	if(command=='n') sayMyName();
 	if(command=='O') codeEnd();			//end of block of code
 	if(command=='o') unknowCode();
 	if(command=='P') unknowCode();
@@ -628,7 +634,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='u') codeScanObjectPrecision(parameter);
 	if(command=='V') unknowCode();
 	if(command=='W') codeWait(parameter);		//wait 
-	if(command=='w') unknowCode();
+	if(command=='w') whoAmI();
 	if(command=='X') codeRepeat(parameter);
 	if(command=='x') setPosition(parameter,yPos);	//define the X position in the arena
 	if(command=='Y') codeStopRepeat();
@@ -651,9 +657,11 @@ String Decabot::programName(int memoryPosition){
 		}
 		runningCodeIndex = memoryPosition;
 	}
-	String msg = F("program [");
+	String msg = F("[program][");
+	msg.concat(memoryPosition);
+	msg.concat("][");
 	msg.concat(name);
-	msg.concat("]");
+	msg.concat("][/]");
 	outputln(msg);
 	return name;
 }
@@ -755,8 +763,9 @@ void Decabot::adjustHeading(){
 	if(heading>360) heading -= 360;
 	if(heading<0) heading += 360;
 	if(millis()%500==0) {
-		String msg = F("[heading]");
+		String msg = F("[heading][");
 		msg.concat(heading);
+		msg.concat("][/]");
 		outputln(msg);
 	}
 }
@@ -797,13 +806,15 @@ void Decabot::setPosition(float x, float y){
 }
 
 void Decabot::showPosition(){
-	String msg = sayMyName();
-	msg.concat(F(" position: x="));
+	String msg = F("[position][");
+	msg.concat(sayMyName());
+	msg.concat(F("]["));
 	msg.concat(xPos);
-	msg.concat(F(", y="));
+	msg.concat(F("]["));
 	msg.concat(yPos);
-	msg.concat(F(", heading="));
+	msg.concat(F("]["));
 	msg.concat(heading);
+	msg.concat(F("][/]"));
 	outputln(msg);
 }
 
@@ -933,7 +944,7 @@ void Decabot::update(){
 	if(millis()%objectDetectionDelay==0){ //object detection doesn't work while moving, because the self position is not incremental
 		objectDetection();
 	}
-	if(millis()%10000==0){
+	if(millis()%5000==0){
 		showPosition();
 	}
 	readButton();
@@ -963,13 +974,13 @@ void Decabot::objectDetection(){
 		if(!((hip>=lastDetection-1)&&(hip<=lastDetection+1))){ //removes noise from ultrasonic reading
 			int objX = (cos(radian(heading)) * hip) + xPos;
 			int objY = (sin(radian(heading)) * hip) + xPos;
-			String msg = F("[obs] Obstacle detected in [x]");
+			String msg = "[obstacle][";
 			msg.concat(objX);
-			msg.concat(" [y]");
+			msg.concat("][");
 			msg.concat(objY);
-			msg.concat(" (dist ");
-			msg.concat(hip);
-			msg.concat("cm)");
+			msg.concat("][foundBy][");
+			msg.concat(decabotName);
+			msg.concat("][/]");
 			outputln(msg);
 			lastDetection = hip;
 		}

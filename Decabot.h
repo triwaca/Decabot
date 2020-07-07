@@ -99,6 +99,7 @@ class Decabot
 		int ledPin = 2;		//Pin connected to frontal LED
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
+		String tmpOutput = "";
 		String inputSerialString;
 		//movements variables
 		int millisDelay = 4;
@@ -115,7 +116,7 @@ class Decabot
 		//self position variables
 		float xPos = 0;
 		float yPos = 0;
-		float heading = 90;
+		float heading = 0;
 		//Code Domino variables
 		bool moving = 0;
 		int stepsToMove = 0;
