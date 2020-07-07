@@ -58,6 +58,8 @@ class Decabot
 		void codeDomino(char code[]);
 		void run();
 		void run(int blockMemory);
+		void runCodeDominoSetup();
+		void checkCodeDominoLoops();
 		void nextCommand();
 		char infiniteCode(int index);
 		void codeInterpreter(char command, int parameter);

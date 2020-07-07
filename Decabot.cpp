@@ -41,6 +41,15 @@ void Decabot::boot(){
 	whoAmI();
 	//soundBoot();
 	outputln(F("READY!"));
+	runCodeDominoSetup();
+}
+
+void Decabot::runCodeDominoSetup(){
+	if(infiniteCode(902)!='[') {
+		outputln(F("found CodeDomino on setup..."));
+		//outputln(programName(774));
+		run(10);
+	}
 }
 
 void Decabot::inputSerial(char dataSerial) {
@@ -670,7 +679,7 @@ String Decabot::programName(int memoryPosition){
 		runningCodeIndex = memoryPosition;
 	}
 	String msg = F("[program][");
-	msg.concat(memoryPosition);
+	msg.concat((memoryPosition-128)/64);
 	msg.concat("][");
 	msg.concat(name);
 	msg.concat("][/]");
@@ -978,6 +987,10 @@ void Decabot::update(){
 	readButton();
 	digitalWrite(ledPin, ledPinState);
 	delay(1); //slow the code to not to run twice the update in the same millissecond
+}
+
+void Decabot::checkCodeDominoLoops(){
+	//check if need to run the codes on loop memories
 }
 
 double Decabot::measureDistance(){
