@@ -57,11 +57,11 @@ void Decabot::runCodeOnSerial(){
 	int serialCodeSize = inputSerialString.length() + 1;
 	char inputSerialChar[serialCodeSize]; 
 	inputSerialString.toCharArray(inputSerialChar, serialCodeSize);	//convert string to char
-	if(inputSerialString[0]=='['){		//checkif it is a code Domino
+	if((inputSerialString[0]=='[')or(inputSerialString[0]=='S')){		//checkif it is a code Domino
 		codeDomino(inputSerialChar);
 	} else {
+		//tun the command imediatelly		
 		codeInterpreter(inputSerialString[0], 0);
-		//outputln(inputSerialString);	//echo serial data
 	}
 }
 
@@ -519,6 +519,7 @@ void Decabot::codeDomino(char code[]){
 		Serial.println("");
 		for(i;i<128;i++) runningCode[i]='O'; //fill the rest of the array with End command
 	}
+	loadLedsCheck();
 }
 
 void Decabot::saveCodeROM(int memoryBlock) {
@@ -602,7 +603,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='e') unknowCode();
 	if(command=='F') codeForward(parameter);	//move forward
 	if(command=='f') unknowCode();
-	if(command=='G') saveCodeROM(parameter);
+	if(command=='G') saveCodeROM(parameter);	
 	if(command=='g') unknowCode();
 	if(command=='H') unknowCode();
 	if(command=='h') unknowCode();
@@ -615,9 +616,9 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='L') codeLeft(parameter);		//turn left
 	if(command=='l') unknowCode();
 	if(command=='M') codeMusic(parameter);		//play sound
-	if(command=='m') unknowCode();
+	if(command=='m') dumpMemory();			//dump memory on serial
 	if(command=='N') unknowCode();
-	if(command=='n') sayMyName();
+	if(command=='n') sayMyName();			//return decabot name
 	if(command=='O') codeEnd();			//end of block of code
 	if(command=='o') unknowCode();
 	if(command=='P') unknowCode();
@@ -664,6 +665,14 @@ String Decabot::programName(int memoryPosition){
 	msg.concat("][/]");
 	outputln(msg);
 	return name;
+}
+
+void Decabot::loadLedsCheck(){
+	if(infiniteCode(0)!='[') {
+		ledPinState = 0;	
+	} else {
+		ledPinState = 1;
+	}
 }
 
 void Decabot::unknowCode(){
@@ -840,6 +849,7 @@ void Decabot::codeEnd(){
 			Serial.println(F(" second(s)"));
 		}
 		soundEnd();
+		loadLedsCheck();
 		resetMotors();
 	}
 }
@@ -936,6 +946,13 @@ void Decabot::update(){
 	if(moving){
 		updateSteps();
 		updateMotors();
+		if(millis()%200==0){
+			if(ledPinState) {
+				ledPinState = 0;
+			} else { 
+				ledPinState = 1;
+			}
+		}
 	} else {
 		if(executing){
 			nextCommand();
@@ -948,6 +965,7 @@ void Decabot::update(){
 		showPosition();
 	}
 	readButton();
+	digitalWrite(ledPin, ledPinState);
 	delay(1); //slow the code to not to run twice the update in the same millissecond
 }
 

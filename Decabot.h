@@ -52,6 +52,7 @@ class Decabot
 		//buttons
 		int readButton();
 		void executeButton(int button);
+		void loadLedsCheck();
 		//Code Domino
 		void update();
 		void codeDomino(char code[]);
@@ -97,6 +98,7 @@ class Decabot
 		int echoPin = 4;	//Pin connected to HC-SR04 ultrasonic
 		int buzzerPin = 3;	//Pin connected to buzzer
 		int ledPin = 2;		//Pin connected to frontal LED
+		bool ledPinState = 0;
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
 		String tmpOutput = "";
