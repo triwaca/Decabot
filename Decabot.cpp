@@ -826,16 +826,16 @@ void Decabot::setPosition(float x, float y){
 }
 
 void Decabot::showPosition(){
-	String msg = F("[position][");
-	msg.concat(sayMyName());
-	msg.concat(F("]["));
-	msg.concat(xPos);
-	msg.concat(F("]["));
-	msg.concat(yPos);
-	msg.concat(F("]["));
-	msg.concat(heading);
-	msg.concat(F("][/]"));
-	outputln(msg);
+	tmpOutput = F("[position][");
+	tmpOutput.concat(sayMyName());
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(xPos);
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(yPos);
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(heading);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
 }
 
 void Decabot::codeEnd(){
