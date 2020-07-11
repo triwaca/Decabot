@@ -1,15 +1,18 @@
 #include <Decabot.h>
 
-Decabot robot(9600); //create object Decabot
+Decabot robot(3); //create object Decabot
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
   robot.boot();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  robot.output("ok");
-  delay(2000);
+  robot.update(); //update state of Code Domino machine
+}
+
+void serialEvent() {      //allows the robot to receive data from Serial
+  while (Serial.available()) {
+    robot.inputSerial((char)Serial.read());
+  }
 }
