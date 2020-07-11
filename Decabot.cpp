@@ -158,7 +158,7 @@ void Decabot::executeButton(int button){
 			rfidCodeRecord(0);
 			break;
 		case 12:
-			formatROM("a");
+			formatROM();
 			break;
 	}
 }
@@ -306,7 +306,7 @@ void Decabot::outputln(String message) {
 	Serial.println(msg);
 }
 
-void Decabot::formatROM(String name){
+void Decabot::formatROM(){
 	if(1){
 		outputln("Formatting ROM...");
 		for(int i=0;i<EEPROM.length();i++){

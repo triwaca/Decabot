@@ -32,7 +32,7 @@ class Decabot
 		void outputln(String message);
 		void output(String message);
 		void dumpMemory();
-		void formatROM(String name);
+		void formatROM();
 		void primeDirectives();
 		//sounds
 		void beep(int time);
