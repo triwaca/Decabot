@@ -45,7 +45,7 @@ void Decabot::boot(){
 }
 
 void Decabot::runCodeDominoSetup(){
-	if(infiniteCode(902)!='[') {
+	if(infiniteCode(902)=='[') {
 		outputln(F("found CodeDomino on setup..."));
 		//outputln(programName(774));
 		run(10);
