@@ -286,6 +286,15 @@ void Decabot::yourOwnerIs(String parameter){
 	Serial.println(F("][/]"));
 }
 
+void Decabot::primeDirectives(){
+	outputln("Prime Directives:");
+	Serial.println("\t1. Serve the public trust");
+	Serial.println("\t2. Protect the innocent");
+	Serial.println("\t3. Uphold the law");
+	delay(3000);
+	Serial.println("\t4. not found... [?]");
+}
+
 void Decabot::outputln(String message) {
 	//Terminal-like output, with timestamp
 	//User must start serial in setup() to work
