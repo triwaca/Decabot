@@ -1,10 +1,10 @@
 #include <Decabot.h>
 
-Deacbot r2d2();
+Decabot r2d2();
 
 void setup() {
   // put your setup code here, to run once:
-  r2d2.boo();
+  r2d2.boot();
   r2d2.dumpMemory();
 }
 
