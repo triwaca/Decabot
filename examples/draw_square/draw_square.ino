@@ -15,7 +15,7 @@
 
 #include <Decabot.h>
 
-Decabot robot(4); //create object Decabot with 4 millis between motor steps
+Decabot robot(4,0); //create object Decabot with 4 millis between motor steps
 
 void setup() {
   robot.boot();           //initialize Decabot

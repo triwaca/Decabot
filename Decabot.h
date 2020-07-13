@@ -14,12 +14,31 @@
 #define code_square "[square]X4FLYO"
 #define code_scan "[scan]L45u5Ru2L45O"
 
+//ledDisplay const
+// the MAX7219 address map (datasheet table 2)
+#define MAX7219_DECODE_REG      (0x09)
+#define MAX7219_INTENSITY_REG   (0x09)
+#define MAX7219_SCANLIMIT_REG   (0x0B)
+#define MAX7219_SHUTDOWN_REG    (0X0C)
+#define MAX7219_DISPLAYTEST_REG (0x0F)
+#define MAX7219_DIGIT_REG(pos)  ((pos) + 1)
+#define MAX7219_COLUMN_REG(pos) MAX7219_DIGIT_REG(pos)
+
+// shutdown mode (datasheet table 3)
+#define MAX7219_OFF             (0x0)
+#define MAX7219_ON              (0x1)
+
+// number of columns of the display matrx
+#define NUM_OF_COLUMNS  (8)
+// for each character bitmap, it consumes 4 bytes
+#define BYTE_PER_MAP    (4)
+
 // library interface description
 class Decabot
 {
 	public:
 		//constructor		
-		Decabot(int nothing);
+		Decabot(int delay, byte configuration);
 		~Decabot();
 		//basics
 		void boot();
@@ -91,9 +110,31 @@ class Decabot
 		void rfidCodeRecord(int blockMemory);
 		//ultrasonic functions
 		double measureDistance();
-		void objectDetection();
+		void objectDetection(bool forced);
 		void codeScanObjectPrecision(int range);
+		//ledMatrix display functions
+		void ledMatrixInit();
+		void ledMatrixSetRegister(byte address, byte value);
+		void ledMatrixClear();
+		void ledMatrixRandom();
+		void ledMatrixBattery(int value);
+		void ledFaceClearMem();
+		void ledFaceEyes(int position);
+		void ledFaceEyebrows(int closed, int angry);
+		void ledFaceMouth(int index);
+		void printFace();
 	private:
+		byte decabotConfiguration = B00000000;
+		/*defines wich configuration the robot is set
+		 1- Ultrasonic on 4,5
+		 2- RFID on 9-13
+		 3- Servo on A2
+		 4- Led Matrix on 4,5,A2
+		 5- Gyroscope on i2c
+		 6- Laser distance sensor on i2c
+		 7- Light sensors on A1,A3
+		 8- PIR sensor on A2
+		*/
 		int latchPin = 8;	//Pin connected to ST_CP of 74HC595
 		int clockPin = 7;	//Pin connected to SH_CP of 74HC595
 		int dataPin = 6;	//Pin connected to DS of 74HC595
@@ -101,6 +142,10 @@ class Decabot
 		int echoPin = 4;	//Pin connected to HC-SR04 ultrasonic
 		int buzzerPin = 3;	//Pin connected to buzzer
 		int ledPin = 2;		//Pin connected to frontal LED
+		int servoPin = 16;	//Pin connected to servo
+		int ledLatchPin = 16;	//Pin connected to Max7219 module CS
+		int ledClockPin = 4;	//Pin connected to Max7219 module CLK
+		int ledDataPin = 5;		//Pin connected to Max7219 module DIN
 		bool ledPinState = 0;
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
@@ -160,6 +205,42 @@ class Decabot
 		//private math
 		int poten(int base, int expoent);
 		float radian(float degree);
+		//ledMatrix variables
+		byte ledFaceMem[8] = {B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000}; //video ram memory for 8x8 display
+		bool faceChanged = 0;
+		const byte mouth[9][3] = {
+			{B00000000,B00100100,B00011000}, //small smile
+			{B01000010,B01100110,B00111100}, //smile
+			{B01111110,B00111100,B00011000}, //open smile
+			{B00000000,B00011000,B00011000}, //shut
+			{B00011000,B00100100,B00011000}, //oh
+			{B00111100,B01000010,B00111100}, //ah
+			{B00000011,B00001110,B00111000}, //side mouth
+			{B00000000,B01111110,B00000000}, //neutral
+			{B00111100,B01100110,B01000010}  //sad
+		};
+		const byte eye[3][2] = {
+			{B11001100,B11001100}, //right
+			{B01100110,B01100110},
+			{B00110011,B00110011}, //left
+		};
+		const byte battery[3] = {B00011000,B00111100,B00100100};
+		const byte eyeBrow[3][3] = {
+			{B10000001,B01000010,B00100100}, //angry
+			{B00000000,B11100111,B00000000}, //normal
+			{B00100100,B01000010,B10000001}, //sad
+		};
+		const byte eyeClear[3][3] = {
+			{B00000000,B10000001,B11000011}, //angry
+			{B00000000,B00000000,B11111111}, //normal
+			{B00000000,B00111100,B01111110}, //sad
+		};
+		int decabotMusic[4][2]{
+			{494,2},
+			{554,2},
+			{440,2},
+			{880,1}
+		};
 };
 
 #endif

@@ -1,6 +1,6 @@
 #include <Decabot.h>
 
-Decabot robot(3); //create object Decabot
+Decabot robot(3,B00000000); //create object Decabot
 
 void setup() {
   Serial.begin(9600);

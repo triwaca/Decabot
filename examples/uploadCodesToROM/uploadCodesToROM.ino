@@ -5,11 +5,13 @@
  *  sequence, drawing a square, a circle and a triangle. You can check
  *  the memory in the end typing 'm' on console (to dump memory).
  * 
+ *  Included a ultrasonic sensor on 4,5
+ * 
  */
 
 #include <Decabot.h>
 
-Decabot robot(3); //create object Decabot
+Decabot robot(3,B00000001); //create object Decabot
 
 void setup() {
   Serial.begin(9600);

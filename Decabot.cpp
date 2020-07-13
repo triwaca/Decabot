@@ -6,8 +6,8 @@
 
 #include"Decabot.h"
 
-Decabot::Decabot(int delay) 
-{
+Decabot::Decabot(int delay, byte configuration){
+	decabotConfiguration = configuration;
 	//define pin modes for shift register, buzzer and LED
 	millisDelay = delay;
 	pinMode(buzzerPin, OUTPUT);
@@ -15,9 +15,26 @@ Decabot::Decabot(int delay)
 	pinMode(latchPin, OUTPUT);
 	pinMode(clockPin, OUTPUT);
 	pinMode(dataPin, OUTPUT);
-	pinMode(trigPin, OUTPUT);
-	pinMode(echoPin, INPUT);
-	digitalWrite(trigPin, LOW);
+	if(bitRead(decabotConfiguration,3)){
+		//configure a 8 x 8 led display on 2,4,5
+  		pinMode(ledLatchPin, OUTPUT); 
+		pinMode(ledClockPin, OUTPUT);   
+		pinMode(ledDataPin, OUTPUT);
+		bitWrite(decabotConfiguration,0,0); //turn off ultrasonic configuration
+		bitWrite(decabotConfiguration,2,0); //turn off servo configuration
+	} else {
+		if(bitRead(decabotConfiguration,0)){
+			//configure a ultrasonic sensor on 4,5
+			pinMode(trigPin, OUTPUT);
+			pinMode(echoPin, INPUT);
+			digitalWrite(trigPin, LOW);
+		}
+		if(bitRead(decabotConfiguration,2)){
+			//configure a servo on pin 16
+			pinMode(servoPin, OUTPUT);
+		}
+	}
+	
 }
 
 Decabot::~Decabot() 
@@ -37,9 +54,28 @@ void Decabot::boot(){
 	//Boot sequence
 	Serial.println(F(" - - - - - - - - - - - - - - - - - - - - - - - - - - D E C A N O"));
 	outputln(F("Initializing Decabot..."));
+	if(bitRead(decabotConfiguration,3)){
+		//configure a 8 x 8 led display on CLK 4, DIN 5, CS 16(A2)
+		outputln(F("Led Matrix MAX7219 on CLK 4, DIN 5, CS 16(A2)"));
+		// init MAX2719 states
+		ledMatrixInit();
+		ledFaceEyes(5);
+		printFace();
+	} else {
+		if(bitRead(decabotConfiguration,0)){
+			//configure a ultrasonic sensor on 4,5
+			outputln(F("Ultrasonic sensor HC-SR04 on ECHO 4, TRIG 5"));
+		}
+		if(bitRead(decabotConfiguration,2)){
+			//configure a servo on pin 16
+			outputln(F("Servo motor S on 16(A2)"));
+		}
+	}
+	outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
+	outputln(F("Step Motor on BAY1, BAY2"));
 	resetMotors();
 	whoAmI();
-	//soundBoot();
+	soundBoot();
 	outputln(F("READY!"));
 	runCodeDominoSetup();
 }
@@ -388,15 +424,14 @@ void Decabot::beep(int time){
 
 void Decabot::soundBoot() {
 	digitalWrite(ledPin, HIGH);
-	for(int i=400;i<1000;i++){
-		tone(buzzerPin, i, 3);
-		delay(3);
+	for(int i=0;i<4;i++){
+		ledFaceEyes(5);
+		ledFaceMouth(i);
+		printFace();
+		tone(buzzerPin, decabotMusic[i][0], decabotMusic[i][1]*200);
+    	delay(decabotMusic[i][1]*200);
+    	noTone(buzzerPin);
 	}
-	noTone(buzzerPin);
-	delay(50);
-	beep(50);
-	delay(50);
-	beep(50);
 	digitalWrite(ledPin, LOW);
 }
 
@@ -660,7 +695,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='s') codeSpeed(parameter);		//set temporary motor speed
 	if(command=='T') unknowCode();
 	if(command=='t') unknowCode();
-	if(command=='U') objectDetection();
+	if(command=='U') objectDetection(1);
 	if(command=='u') codeScanObjectPrecision(parameter);
 	if(command=='V') unknowCode();
 	if(command=='W') codeWait(parameter);		//wait 
@@ -988,12 +1023,20 @@ void Decabot::update(){
 		}
 	}
 	if(millis()%objectDetectionDelay==0){ //object detection doesn't work while moving, because the self position is not incremental
-		objectDetection();
+		objectDetection(0);
 	}
 	if(millis()%5000==0){
 		showPosition();
+		ledFaceEyes(random(3)+4);
+		ledFaceEyebrows(2,2);
+		ledFaceMouth(random(4));
 	}
 	readButton();
+	//check if has a led matrix and if need to update the led matrix
+	if((bitRead(decabotConfiguration,3))&&faceChanged){
+		printFace();
+		faceChanged = 0;
+	}
 	digitalWrite(ledPin, ledPinState);
 	delay(1); //slow the code to not to run twice the update in the same millissecond
 }
@@ -1019,21 +1062,28 @@ double Decabot::measureDistance(){
 	}
 }
 
-void Decabot::objectDetection(){
-	double hip = measureDistance(); //hipotenusa receives measured distance from ultrasonic
-	if(hip!=0){ //check if the ultrasonic sensor is installed
-		if(!((hip>=lastDetection-1)&&(hip<=lastDetection+1))){ //removes noise from ultrasonic reading
-			int objX = (cos(radian(heading)) * hip) + xPos;
-			int objY = (sin(radian(heading)) * hip) + xPos;
-			String msg = "[obstacle][";
-			msg.concat(objX);
-			msg.concat("][");
-			msg.concat(objY);
-			msg.concat("][foundBy][");
-			msg.concat(decabotName);
-			msg.concat("][/]");
-			outputln(msg);
-			lastDetection = hip;
+void Decabot::objectDetection(bool forced){
+	//check if there is a sensor
+	if(bitRead(decabotConfiguration,0)){
+		double hip = measureDistance(); //hipotenusa receives measured distance from ultrasonic
+		if(hip!=0){ //check if the ultrasonic sensor is installed
+			if(!((hip>=lastDetection-1)&&(hip<=lastDetection+1))){ //removes noise from ultrasonic reading
+				int objX = (cos(radian(heading)) * hip) + xPos;
+				int objY = (sin(radian(heading)) * hip) + xPos;
+				String msg = "[obstacle][";
+				msg.concat(objX);
+				msg.concat("][");
+				msg.concat(objY);
+				msg.concat("][foundBy][");
+				msg.concat(decabotName);
+				msg.concat("][/]");
+				outputln(msg);
+				lastDetection = hip;
+			}
+		}
+	} else {
+		if(forced){
+			outputln(F("[no distance sensor][/]"));
 		}
 	}
 }
@@ -1069,3 +1119,116 @@ float Decabot::radian(float degree){
 	return (degree * 71) / 4068;
 }
 
+void Decabot::ledMatrixInit(){
+	outputln(F("Initializing led matrix..."));
+	// disable test mode. datasheet table 10
+	ledMatrixSetRegister(MAX7219_DISPLAYTEST_REG, MAX7219_OFF);
+	// set medium intensity. datasheet table 7
+	ledMatrixSetRegister(MAX7219_INTENSITY_REG, 0x1);
+	// turn off display. datasheet table 3
+	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF);
+	// drive 8 digits. datasheet table 8
+	ledMatrixSetRegister(MAX7219_SCANLIMIT_REG, 7);
+	// no decode mode for all positions. datasheet table 4
+	ledMatrixSetRegister(MAX7219_DECODE_REG, B00000000);
+
+	// clear matrix display
+	ledMatrixClear();
+}
+
+void Decabot::ledMatrixSetRegister(byte address, byte value){
+	digitalWrite(ledLatchPin, LOW);
+	shiftOut(ledDataPin, ledClockPin, MSBFIRST, address);
+	shiftOut(ledDataPin, ledClockPin, MSBFIRST, value);
+	digitalWrite(ledLatchPin, HIGH);
+}
+
+void Decabot::ledMatrixClear(){
+	// clear the dot matrix
+	for (int i = 0; i < NUM_OF_COLUMNS; i++)
+	{
+		ledMatrixSetRegister(MAX7219_COLUMN_REG(i), B00000000);
+	}
+}
+
+void Decabot::ledMatrixRandom(){
+	faceChanged = 1;
+	for(int i=0;i<8;i++){
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+		ledMatrixSetRegister(i+1, random(256));
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+	}
+}
+
+void Decabot::ledMatrixBattery(int value){
+	faceChanged = 1;
+	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+	ledMatrixSetRegister(1,battery[0]);
+	ledMatrixSetRegister(2,battery[1]);
+	for(int i=5;i>0;i--){
+	if(value > 0) {
+		ledMatrixSetRegister(i+2,battery[1]);
+	} else {
+		ledMatrixSetRegister(i+2,battery[2]);
+	}
+	value--;
+	}
+	ledMatrixSetRegister(8,battery[1]);
+	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+}
+
+void Decabot::ledFaceClearMem(){
+	for(int i=0;i<8;i++){
+		ledFaceMem[i] = B00000000;
+	}
+}
+
+void Decabot::ledFaceEyes(int position) {
+	faceChanged = 1;
+	ledFaceClearMem();
+	int eyePositionX = position;
+	while(eyePositionX>3){
+		eyePositionX = eyePositionX - 3;
+	}
+	eyePositionX--;
+	int eyePositionY;
+	if(position<=3) {
+		eyePositionY = 1;
+	} else if(position>=7){
+		eyePositionY = 3;
+	} else {
+		eyePositionY = 2;
+	}
+	ledFaceMem[eyePositionY] = eye[eyePositionX][0];
+	ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
+}
+
+void Decabot::ledFaceEyebrows(int closed, int angry){
+	faceChanged = 1;
+	if(closed>4) closed=4;
+	for(int i= 1;i<closed;i++){
+		ledFaceMem[closed-2] = ledFaceMem[closed-2] & eyeClear[angry-1][0];
+		ledFaceMem[closed-1] = ledFaceMem[closed-1] & eyeClear[angry-1][1];
+		ledFaceMem[closed] = ledFaceMem[closed] & eyeClear[angry-1][2];
+	}
+	ledFaceMem[closed-1] = ledFaceMem[closed-1] | eyeBrow[angry-1][0];
+	ledFaceMem[closed] = ledFaceMem[closed] | eyeBrow[angry-1][1];
+	ledFaceMem[closed+1] = ledFaceMem[closed+1] | eyeBrow[angry-1][2];
+}
+
+void Decabot::ledFaceMouth(int index){
+	faceChanged = 1;
+	if(index!=0){
+		ledFaceMem[5] = mouth[index-1][0];
+		ledFaceMem[6] = mouth[index-1][1];
+		ledFaceMem[7] = mouth[index-1][2];
+	}
+}
+
+void Decabot::printFace(){
+	for(int i=0;i<8;i++){
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+		ledMatrixSetRegister(i+1,ledFaceMem[i]);
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+	}
+}

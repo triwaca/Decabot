@@ -1,6 +1,6 @@
 #include <Decabot.h>
 
-Decabot r2d2();
+Decabot r2d2(3,0);
 
 void setup() {
   // put your setup code here, to run once:
