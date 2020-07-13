@@ -26,14 +26,44 @@ You must install the following libraries to compile.
 To use the library you must declare your Decabot object:
 ```
 #include <Decabot.h>
-Decabot robot(4);
+Decabot robot(4,0);
 void setup() {
   Serial.begin(9600);
   robot.boot();           //initialize Decabot
 }
 ```
-The parameter number in the object (in the example, 4) reffers to the delay time in each motor step. A safe number is 4. Higher delay will make the robot to walk slowly. Lower delay will make it run faster, but the 28BYJ-48 probabily will not run with a delay less than 3. Serial.begin on setup is optional, but it will show the telemetry messages from the robot.
+The first parameter number in the object (in the example, 4) reffers to the delay time in each motor step. A safe number is 4. Higher delay will make the robot to walk slowly. Lower delay will make it run faster, but the 28BYJ-48 probabily will not run with a delay less than 3. 
 
+The seccond parameter is a binary number, indicating to the code the Decabot configuration. To turn on a sensor, you must put 1 on the sensor position in the binary number:
+
+1. Ultrasonic on 4,5
+2. RFID on 9-13
+4. Servo on A2
+8. Led Matrix on 4,5,A2
+16. Gyroscope on i2c
+32. Laser distance sensor on i2c
+64. Light sensors on A1,A3
+128. PIR sensor on A2
+
+For example, if your Decabot is installed with Ultrasonic, RFID and Gyroscope, you must turn on the bytes 1, 2 and 16:
+```
+|128|64|32|16|8|4|2|1
+|0  |0 |0 |1 |0|0|1|1 = B00010011
+```
+Another example: If your Decabot is using only a frontal led matrix, your decabot declaration is:
+```
+Decabot robot(4,B00001000);
+```
+### Serial Communication
+Serial.begin on setup is optional, but it will show the telemetry messages from the robot. If you want to send messages via serial, you must include the Serial input function after your loop() function. This is extremey important if you are going to control your Decabot using the Decabot App:
+```
+void serialEvent() {      //allows the robot to receive data from Serial
+  while (Serial.available()) {
+    robot.inputSerial((char)Serial.read());
+  }
+}
+```
+### Basic movement functions inside loop()
 To move forward, you can use:
 ```
 robot.forward(10);
@@ -49,7 +79,7 @@ for(int i=1;i<=4;i++){  //repeat forward and left 4 times to draw a square
 The best way to play with your Decabot is using Code Domino language. To use it by typing:
 ```
 #include <Decabot.h>
-Decabot robot(2); //create object Decabot with 4 millis between motor steps
+Decabot robot(4,B00000000); //create object Decabot with 4 millis between motor steps
 void setup() {
   Serial.begin(9600);
   robot.boot();           //initialize Decabot
@@ -73,12 +103,9 @@ A list of Code Domino commands can be found at documentation folder.
 
 ### Send CD codes through Serial
 
-You can send Code Domino commands through Serial, by including this serialEvent() function after the loop():
+You can send Code Domino commands through Serial, by including this serialEvent() function after the loop(). To send a program to go forward 20cm to RAM, you must type on Serial console:
 ```
-void serialEvent() {      //allows the robot to receive data from Serial
-  while (Serial.available()) {
-    robot.inputSerial((char)Serial.read());
-  }
-}
+[]F20O
 ```
+Decabot will store the program on RAM. To execute, just type ***r*** on Serial console, and press enter. 
 See the documentation for other ways to run Code Domino on your Decabot!
