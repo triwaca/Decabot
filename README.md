@@ -11,10 +11,16 @@ To build a basic Decabot robot you must get a laser cut chassis in 2.5mm MDF or 
 * Power source;
 * optional HC-SR04 ultrasonic sensor;
 * optional MFRC522 RFID sensor (to read phisical Code Domino pieces);
-* optional HC-06 or HC-05 bluetooth module.
+* optional HC-06 or HC-05 bluetooth module;
+* optional MAX7219 8 x 8 led display module.
 
 ## Instalation
 Just install in your Arduino IDE as a normal library. Download the ZIP file, go to **sketch** -> **include library** -> **add library .ZIP** and point to the Decabot.ZIP. 
+
+### Dependencies
+You must install the following libraries to compile. 
+* **UniqueID** library, from Luiz Cassetari (https://github.com/ricaun/ArduinoUniqueID). Tested with version 1.0.9;
+* **MFRC522** library, from Miguel Balboa (https://github.com/miguelbalboa/rfid). Tested with version 1.4.6.
 
 ## Basic commands
 To use the library you must declare your Decabot object:
