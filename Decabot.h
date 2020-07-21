@@ -71,6 +71,7 @@ class Decabot
 		void forward(int centimeters);
 		void left(int degrees);
 		void right(int degrees);
+		void servo(int degrees);
 		//buttons
 		int readButton();
 		void executeButton(int button);
@@ -167,6 +168,7 @@ class Decabot
 		bool rightDirection = 1;
 		bool turningLeft = 0;
 		float curveRadious = 5;
+		int servoPosition = 90;	//variable who have the last servo position, for performance purposes
 		//self position variables
 		float xPos = 0;
 		float yPos = 0;

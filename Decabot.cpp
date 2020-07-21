@@ -69,6 +69,7 @@ void Decabot::boot(){
 		if(bitRead(decabotConfiguration,2)){
 			//configure a servo on pin 16
 			outputln(F("Servo motor S on 16(A2)"));
+			pinMode(servoPin, OUTPUT);
 		}
 	}
 	outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
@@ -526,6 +527,28 @@ void Decabot::right(int degrees){
 	move(degrees * 7.8,0,1);
 }
 
+void Decabot::servo(int degrees){
+	if(bitRead(decabotConfiguration,2)){
+		// The map function calculates a number between 5 ans 50 to iteration the pulses, 
+		// proportional to the difference between actual angle and new angle, 
+		// so the robot will not be stucked in delays while moving the servo.
+		tmpOutput = F("[servo][");
+		tmpOutput.concat(degrees);
+		tmpOutput.concat(F("][/]"));
+		outputln(tmpOutput);
+		for(int i=0;i<map(abs(servoPosition-degrees),0,180,5,50);i++){
+			int pulse = map(degrees, 0, 180, 600, 2400);
+			digitalWrite(servoPin, HIGH);
+			delayMicroseconds(pulse); 
+			digitalWrite(servoPin, LOW);
+			delayMicroseconds(pulse - 20000);
+		}
+		servoPosition = degrees;
+	} else {
+		outputln(F("[no servo][/]"));
+	}
+}
+
 void Decabot::codeDomino(char code[]){
 	//loads codeDomino on RAM or ROM
 	if(code[0]=='S') {	//if the first piece of code is Save
@@ -670,7 +693,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='G') saveCodeROM(parameter);	
 	if(command=='g') unknowCode();
 	if(command=='H') unknowCode();
-	if(command=='h') unknowCode();
+	if(command=='h') servo(parameter);		//move servo to the angle
 	if(command=='I') unknowCode();
 	if(command=='i') unknowCode();
 	if(command=='J') unknowCode();
@@ -964,6 +987,7 @@ void Decabot::codeStopRepeat(){
 }
 
 void Decabot::codeWait(int timeWait){
+	if(timeWait==0) timeWait = 1;
 	String msg = F("[wait][");
 	msg.concat(timeWait);
 	msg.concat(F("]secs"));
