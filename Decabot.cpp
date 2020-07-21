@@ -424,8 +424,8 @@ void Decabot::beep(int time){
 
 void Decabot::soundBoot() {
 	digitalWrite(ledPin, HIGH);
+	ledFaceEyes(5);
 	for(int i=0;i<4;i++){
-		ledFaceEyes(5);
 		ledFaceMouth(i);
 		printFace();
 		tone(buzzerPin, decabotMusic[i][0], decabotMusic[i][1]*200);
@@ -1189,22 +1189,6 @@ void Decabot::ledFaceClearMem(){
 void Decabot::ledFaceEyes(int position) {
 	varE = position;
 	faceChanged = 1;
-	ledFaceClearMem();
-	int eyePositionX = position;
-	while(eyePositionX>3){
-		eyePositionX = eyePositionX - 3;
-	}
-	eyePositionX--;
-	int eyePositionY;
-	if(position<=3) {
-		eyePositionY = 1;
-	} else if(position>=7){
-		eyePositionY = 3;
-	} else {
-		eyePositionY = 2;
-	}
-	ledFaceMem[eyePositionY] = eye[eyePositionX][0];
-	ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
 	tmpOutput = F("[face eyes][");
 	tmpOutput.concat(position);
 	tmpOutput.concat(F("][/]"));
@@ -1215,15 +1199,6 @@ void Decabot::ledFaceEyebrows(int closed, int angry){
 	varA = angry;
 	varC = closed;
 	faceChanged = 1;
-	if(closed>4) closed=4;
-	for(int i= 1;i<closed;i++){
-		ledFaceMem[closed-2] = ledFaceMem[closed-2] & eyeClear[angry-1][0];
-		ledFaceMem[closed-1] = ledFaceMem[closed-1] & eyeClear[angry-1][1];
-		ledFaceMem[closed] = ledFaceMem[closed] & eyeClear[angry-1][2];
-	}
-	ledFaceMem[closed-1] = ledFaceMem[closed-1] | eyeBrow[angry-1][0];
-	ledFaceMem[closed] = ledFaceMem[closed] | eyeBrow[angry-1][1];
-	ledFaceMem[closed+1] = ledFaceMem[closed+1] | eyeBrow[angry-1][2];
 	tmpOutput = F("[face eye brows][");
 	tmpOutput.concat(closed);
 	tmpOutput.concat(F("]["));
@@ -1235,11 +1210,6 @@ void Decabot::ledFaceEyebrows(int closed, int angry){
 void Decabot::ledFaceMouth(int index){
 	varB = index;
 	faceChanged = 1;
-	if(index!=0){
-		ledFaceMem[5] = mouth[index-1][0];
-		ledFaceMem[6] = mouth[index-1][1];
-		ledFaceMem[7] = mouth[index-1][2];
-	}
 	tmpOutput = F("[face mouth][");
 	tmpOutput.concat(index);
 	tmpOutput.concat(F("][/]"));
@@ -1247,6 +1217,45 @@ void Decabot::ledFaceMouth(int index){
 }
 
 void Decabot::printFace(){
+	//clear face memory
+	ledFaceClearMem();
+	//put eyes on memory
+	int eyePositionX = varE;
+	while(eyePositionX>3){
+		eyePositionX = eyePositionX - 3;
+	}
+	eyePositionX--;
+	int eyePositionY;
+	if(varE<=3) {
+		eyePositionY = 1;
+	} else if(varE>=7){
+		eyePositionY = 3;
+	} else {
+		eyePositionY = 2;
+	}
+	ledFaceMem[eyePositionY] = eye[eyePositionX][0];
+	ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
+	//put eye brows on memory
+	if(varC>4) varC=4;
+	varC--; //gambs
+	for(int i= 1;i<varC;i++){
+		//clear eyes pixels
+		ledFaceMem[varC-2] = ledFaceMem[varC-2] & eyeClear[varA-1][0];
+		ledFaceMem[varC-1] = ledFaceMem[varC-1] & eyeClear[varA-1][1];
+		ledFaceMem[varC] = ledFaceMem[varC] & eyeClear[varA-1][2];
+	}
+	//draw eyebrows
+	ledFaceMem[varC-1] = ledFaceMem[varC-1] | eyeBrow[varA-1][0];
+	ledFaceMem[varC] = ledFaceMem[varC] | eyeBrow[varA-1][1];
+	ledFaceMem[varC+1] = ledFaceMem[varC+1] | eyeBrow[varA-1][2];
+	varC++;
+	//put mouth on memory
+	if(varB!=0){
+		ledFaceMem[5] = mouth[varB-1][0];
+		ledFaceMem[6] = mouth[varB-1][1];
+		ledFaceMem[7] = mouth[varB-1][2];
+	}
+	//print memory on leds
 	for(int i=0;i<8;i++){
 		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
 		ledMatrixSetRegister(i+1,ledFaceMem[i]);

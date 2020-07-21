@@ -187,7 +187,7 @@ class Decabot
 		float varQ = 0;
 		int varA = 2;	//angry face
 		int varB = 1;	//mouth
-		int varC = 2;	//close eyebrows
+		int varC = 0;	//close eyebrows
 		int varE = 5;	//eyeposition
 		//runtime repeat variables
 		int repeatCalls = 0;
@@ -215,7 +215,7 @@ class Decabot
 		const byte mouth[9][3] = {
 			{B00000000,B00100100,B00011000}, //small smile
 			{B01000010,B01100110,B00111100}, //smile
-			{B01111110,B00111100,B00011000}, //open smile
+			{B01111110,B00100100,B00011000}, //open smile
 			{B00000000,B00011000,B00011000}, //shut
 			{B00011000,B00100100,B00011000}, //oh
 			{B00111100,B01000010,B00111100}, //ah
