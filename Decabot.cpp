@@ -708,8 +708,8 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='n') sayMyName();			//return decabot name
 	if(command=='O') codeEnd();			//end of block of code
 	if(command=='o') unknowCode();
-	if(command=='P') unknowCode();
-	if(command=='p') unknowCode();
+	if(command=='P') servo(90);
+	if(command=='p') servo(0);
 	if(command=='Q') unknowCode();
 	if(command=='q') unknowCode();
 	if(command=='R') codeRight(parameter);		//turn right
