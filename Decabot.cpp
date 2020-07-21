@@ -674,7 +674,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='I') unknowCode();
 	if(command=='i') unknowCode();
 	if(command=='J') unknowCode();
-	if(command=='j') unknowCode();
+	if(command=='j') ledMatrixBattery(4);
 	if(command=='K') unknowCode();
 	if(command=='k') unknowCode();
 	if(command=='L') codeLeft(parameter);		//turn left
@@ -1155,16 +1155,15 @@ void Decabot::ledMatrixClear(){
 }
 
 void Decabot::ledMatrixRandom(){
-	faceChanged = 1;
 	for(int i=0;i<8;i++){
 		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
 		ledMatrixSetRegister(i+1, random(256));
 		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
 	}
+	outputln(F("[leds random][/]"));
 }
 
 void Decabot::ledMatrixBattery(int value){
-	faceChanged = 1;
 	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
 	ledMatrixSetRegister(1,battery[0]);
 	ledMatrixSetRegister(2,battery[1]);
@@ -1178,6 +1177,7 @@ void Decabot::ledMatrixBattery(int value){
 	}
 	ledMatrixSetRegister(8,battery[1]);
 	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+	outputln(F("[leds battery][/]"));
 }
 
 void Decabot::ledFaceClearMem(){
@@ -1261,5 +1261,5 @@ void Decabot::printFace(){
 		ledMatrixSetRegister(i+1,ledFaceMem[i]);
 		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
 	}
-	outputln(F("[draw face][/]"));
+	outputln(F("[leds face][/]"));
 }
