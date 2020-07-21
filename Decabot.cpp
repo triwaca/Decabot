@@ -674,7 +674,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='I') unknowCode();
 	if(command=='i') unknowCode();
 	if(command=='J') unknowCode();
-	if(command=='j') ledMatrixBattery(4);
+	if(command=='j') ledMatrixBattery(measureBattery());
 	if(command=='K') unknowCode();
 	if(command=='k') unknowCode();
 	if(command=='L') codeLeft(parameter);		//turn left
@@ -1120,6 +1120,59 @@ float Decabot::radian(float degree){
 	return (degree * 71) / 4068;
 }
 
+//battery
+
+long Decabot::readVcc(byte samples) //by @Yuri-Lima
+{
+	//Contribuição do material: https://www.automalabs.com.br/como-medir-a-tensao-de-alimentacao-do-arduino/
+	// Read 1.1V reference against AVcc
+	// set the reference to Vcc and the measurement to the internal 1.1V reference
+	#if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+	ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+	#elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+	ADMUX = _BV(MUX5) | _BV(MUX0);
+	#elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+	ADMUX = _BV(MUX3) | _BV(MUX2);
+	#else
+	ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+	#endif
+	long result = 0, resultSamples = 0;
+	for(byte x = 0; x < samples; x++)
+	{
+    	delay(2); // Wait for Vref to settle
+    	ADCSRA |= _BV(ADSC); // Start conversion
+    	while (bit_is_set(ADCSRA,ADSC)); // measuring
+    	uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH
+    	uint8_t high = ADCH; // unlocks both
+    	result += ( (high << 8) | low);
+	}
+	result = result/samples;
+  	result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
+	return result; // Vcc in millivolts
+}
+
+int Decabot::measureBattery(){
+	tmpOutput = F("[battery][");
+	tmpOutput.concat(decabotName);
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(decabotMinBattery);
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(readVcc(16));
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(decabotMaxBattery);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
+	return map(readVcc(16),decabotMinBattery,decabotMaxBattery,0,5);
+}
+
+void Decabot::setMaxBattery(int value){
+	decabotMaxBattery = value;
+}
+
+void Decabot::setMinBattery(int value){
+	decabotMinBattery = value;
+}
+
 //Led Matrix functions
 
 void Decabot::ledMatrixInit(){
@@ -1155,29 +1208,37 @@ void Decabot::ledMatrixClear(){
 }
 
 void Decabot::ledMatrixRandom(){
-	for(int i=0;i<8;i++){
-		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
-		ledMatrixSetRegister(i+1, random(256));
-		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+	if(bitRead(decabotConfiguration,3)){
+		for(int i=0;i<8;i++){
+			ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+			ledMatrixSetRegister(i+1, random(256));
+			ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+		}
+		outputln(F("[leds random][/]"));
+	} else {
+		outputln(F("[no led matrix][/]"));
 	}
-	outputln(F("[leds random][/]"));
 }
 
 void Decabot::ledMatrixBattery(int value){
-	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
-	ledMatrixSetRegister(1,battery[0]);
-	ledMatrixSetRegister(2,battery[1]);
-	for(int i=5;i>0;i--){
-	if(value > 0) {
-		ledMatrixSetRegister(i+2,battery[1]);
+	if(bitRead(decabotConfiguration,3)){
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+		ledMatrixSetRegister(1,battery[0]);
+		ledMatrixSetRegister(2,battery[1]);
+		for(int i=5;i>0;i--){
+		if(value > 0) {
+			ledMatrixSetRegister(i+2,battery[1]);
+		} else {
+			ledMatrixSetRegister(i+2,battery[2]);
+		}
+		value--;
+		}
+		ledMatrixSetRegister(8,battery[1]);
+		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+		outputln(F("[leds battery][/]"));
 	} else {
-		ledMatrixSetRegister(i+2,battery[2]);
+		outputln(F("[no led matrix][/]"));
 	}
-	value--;
-	}
-	ledMatrixSetRegister(8,battery[1]);
-	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
-	outputln(F("[leds battery][/]"));
 }
 
 void Decabot::ledFaceClearMem(){
@@ -1217,49 +1278,53 @@ void Decabot::ledFaceMouth(int index){
 }
 
 void Decabot::printFace(){
-	//clear face memory
-	ledFaceClearMem();
-	//put eyes on memory
-	int eyePositionX = varE;
-	while(eyePositionX>3){
-		eyePositionX = eyePositionX - 3;
-	}
-	eyePositionX--;
-	int eyePositionY;
-	if(varE<=3) {
-		eyePositionY = 1;
-	} else if(varE>=7){
-		eyePositionY = 3;
+	if(bitRead(decabotConfiguration,3)){
+		//clear face memory
+		ledFaceClearMem();
+		//put eyes on memory
+		int eyePositionX = varE;
+		while(eyePositionX>3){
+			eyePositionX = eyePositionX - 3;
+		}
+		eyePositionX--;
+		int eyePositionY;
+		if(varE<=3) {
+			eyePositionY = 1;
+		} else if(varE>=7){
+			eyePositionY = 3;
+		} else {
+			eyePositionY = 2;
+		}
+		ledFaceMem[eyePositionY] = eye[eyePositionX][0];
+		ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
+		//put eye brows on memory
+		if(varC>4) varC=4;
+		varC--; //gambs
+		for(int i= 1;i<varC;i++){
+			//clear eyes pixels
+			ledFaceMem[varC-2] = ledFaceMem[varC-2] & eyeClear[varA-1][0];
+			ledFaceMem[varC-1] = ledFaceMem[varC-1] & eyeClear[varA-1][1];
+			ledFaceMem[varC] = ledFaceMem[varC] & eyeClear[varA-1][2];
+		}
+		//draw eyebrows
+		ledFaceMem[varC-1] = ledFaceMem[varC-1] | eyeBrow[varA-1][0];
+		ledFaceMem[varC] = ledFaceMem[varC] | eyeBrow[varA-1][1];
+		ledFaceMem[varC+1] = ledFaceMem[varC+1] | eyeBrow[varA-1][2];
+		varC++;
+		//put mouth on memory
+		if(varB!=0){
+			ledFaceMem[5] = mouth[varB-1][0];
+			ledFaceMem[6] = mouth[varB-1][1];
+			ledFaceMem[7] = mouth[varB-1][2];
+		}
+		//print memory on leds
+		for(int i=0;i<8;i++){
+			ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+			ledMatrixSetRegister(i+1,ledFaceMem[i]);
+			ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+		}
+		outputln(F("[leds face][/]"));
 	} else {
-		eyePositionY = 2;
+		outputln(F("[no led matrix][/]"));
 	}
-	ledFaceMem[eyePositionY] = eye[eyePositionX][0];
-	ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
-	//put eye brows on memory
-	if(varC>4) varC=4;
-	varC--; //gambs
-	for(int i= 1;i<varC;i++){
-		//clear eyes pixels
-		ledFaceMem[varC-2] = ledFaceMem[varC-2] & eyeClear[varA-1][0];
-		ledFaceMem[varC-1] = ledFaceMem[varC-1] & eyeClear[varA-1][1];
-		ledFaceMem[varC] = ledFaceMem[varC] & eyeClear[varA-1][2];
-	}
-	//draw eyebrows
-	ledFaceMem[varC-1] = ledFaceMem[varC-1] | eyeBrow[varA-1][0];
-	ledFaceMem[varC] = ledFaceMem[varC] | eyeBrow[varA-1][1];
-	ledFaceMem[varC+1] = ledFaceMem[varC+1] | eyeBrow[varA-1][2];
-	varC++;
-	//put mouth on memory
-	if(varB!=0){
-		ledFaceMem[5] = mouth[varB-1][0];
-		ledFaceMem[6] = mouth[varB-1][1];
-		ledFaceMem[7] = mouth[varB-1][2];
-	}
-	//print memory on leds
-	for(int i=0;i<8;i++){
-		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
-		ledMatrixSetRegister(i+1,ledFaceMem[i]);
-		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
-	}
-	outputln(F("[leds face][/]"));
 }

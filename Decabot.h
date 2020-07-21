@@ -53,6 +53,8 @@ class Decabot
 		void dumpMemory();
 		void formatROM();
 		void primeDirectives();
+		void setMaxBattery(int value);
+		void setMinBattery(int value);
 		//sounds
 		void beep(int time);
 		void soundBegin();
@@ -125,6 +127,8 @@ class Decabot
 		void printFace();
 	private:
 		byte decabotConfiguration = B00000000;
+		int decabotMaxBattery = 5000;	//maximum battery value
+		int decabotMinBattery = 4000;	//minimum battery value
 		/*defines wich configuration the robot is set
 		 1- Ultrasonic on 4,5
 		 2- RFID on 9-13
@@ -209,6 +213,8 @@ class Decabot
 		//private math
 		int poten(int base, int expoent);
 		float radian(float degree);
+		long readVcc(byte samples);
+		int measureBattery();
 		//ledMatrix variables
 		byte ledFaceMem[8] = {B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000,B00000000}; //video ram memory for 8x8 display
 		bool faceChanged = 0;
