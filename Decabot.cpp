@@ -656,17 +656,17 @@ char Decabot::infiniteCode(int index){
 
 void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='A') unknowCode();
-	if(command=='a') unknowCode();
+	if(command=='a') ledFaceEyebrows(varC, parameter);	//change angry state face
 	if(command=='B') codeGoTo(parameter);		//go to a position in code
-	if(command=='b') unknowCode();
+	if(command=='b') ledFaceMouth(parameter);	//change mouth
 	if(command=='C') unknowCode();
-	if(command=='c') unknowCode();
+	if(command=='c') ledFaceEyebrows(parameter, varA);	//change eyebrow close state
 	if(command=='D') unknowCode();
 	if(command=='d') unknowCode();
 	if(command=='E') unknowCode();
-	if(command=='e') unknowCode();
+	if(command=='e') ledFaceEyes(parameter);	//move eyes
 	if(command=='F') codeForward(parameter);	//move forward
-	if(command=='f') unknowCode();
+	if(command=='f') printFace();
 	if(command=='G') saveCodeROM(parameter);	
 	if(command=='g') unknowCode();
 	if(command=='H') unknowCode();
@@ -708,6 +708,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='z') unknowCode();
 	if(command=='[') programName(runningCodeIndex);
 	if(command=='?') showPosition();
+	if(command=='#') ledMatrixRandom();
 }
 
 String Decabot::programName(int memoryPosition){
@@ -1027,9 +1028,9 @@ void Decabot::update(){
 	}
 	if(millis()%5000==0){
 		showPosition();
-		ledFaceEyes(random(3)+4);
-		ledFaceEyebrows(2,2);
-		ledFaceMouth(random(4));
+		//ledFaceEyes(random(3)+4);
+		//ledFaceEyebrows(2,2);
+		//ledFaceMouth(random(4));
 	}
 	readButton();
 	//check if has a led matrix and if need to update the led matrix
@@ -1119,6 +1120,8 @@ float Decabot::radian(float degree){
 	return (degree * 71) / 4068;
 }
 
+//Led Matrix functions
+
 void Decabot::ledMatrixInit(){
 	outputln(F("Initializing led matrix..."));
 	// disable test mode. datasheet table 10
@@ -1184,6 +1187,7 @@ void Decabot::ledFaceClearMem(){
 }
 
 void Decabot::ledFaceEyes(int position) {
+	varE = position;
 	faceChanged = 1;
 	ledFaceClearMem();
 	int eyePositionX = position;
@@ -1201,9 +1205,15 @@ void Decabot::ledFaceEyes(int position) {
 	}
 	ledFaceMem[eyePositionY] = eye[eyePositionX][0];
 	ledFaceMem[eyePositionY+1] = eye[eyePositionX][1];
+	tmpOutput = F("[face eyes][");
+	tmpOutput.concat(position);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
 }
 
 void Decabot::ledFaceEyebrows(int closed, int angry){
+	varA = angry;
+	varC = closed;
 	faceChanged = 1;
 	if(closed>4) closed=4;
 	for(int i= 1;i<closed;i++){
@@ -1214,15 +1224,26 @@ void Decabot::ledFaceEyebrows(int closed, int angry){
 	ledFaceMem[closed-1] = ledFaceMem[closed-1] | eyeBrow[angry-1][0];
 	ledFaceMem[closed] = ledFaceMem[closed] | eyeBrow[angry-1][1];
 	ledFaceMem[closed+1] = ledFaceMem[closed+1] | eyeBrow[angry-1][2];
+	tmpOutput = F("[face eye brows][");
+	tmpOutput.concat(closed);
+	tmpOutput.concat(F("]["));
+	tmpOutput.concat(angry);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
 }
 
 void Decabot::ledFaceMouth(int index){
+	varB = index;
 	faceChanged = 1;
 	if(index!=0){
 		ledFaceMem[5] = mouth[index-1][0];
 		ledFaceMem[6] = mouth[index-1][1];
 		ledFaceMem[7] = mouth[index-1][2];
 	}
+	tmpOutput = F("[face mouth][");
+	tmpOutput.concat(index);
+	tmpOutput.concat(F("][/]"));
+	outputln(tmpOutput);
 }
 
 void Decabot::printFace(){
@@ -1231,4 +1252,5 @@ void Decabot::printFace(){
 		ledMatrixSetRegister(i+1,ledFaceMem[i]);
 		ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
 	}
+	outputln(F("[draw face][/]"));
 }

@@ -185,6 +185,10 @@ class Decabot
 		float varN = 0;
 		float varP = 0;
 		float varQ = 0;
+		int varA = 2;	//angry face
+		int varB = 1;	//mouth
+		int varC = 2;	//close eyebrows
+		int varE = 5;	//eyeposition
 		//runtime repeat variables
 		int repeatCalls = 0;
 		int repeatPointers[64];
