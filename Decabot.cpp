@@ -16,7 +16,7 @@ Decabot::Decabot(int delay, byte configuration){
 	pinMode(clockPin, OUTPUT);
 	pinMode(dataPin, OUTPUT);
 	if(bitRead(decabotConfiguration,3)){
-		//configure a 8 x 8 led display on 2,4,5
+		//configure a 8 x 8 led display on A2,4,5
   		pinMode(ledLatchPin, OUTPUT); 
 		pinMode(ledClockPin, OUTPUT);   
 		pinMode(ledDataPin, OUTPUT);
@@ -33,6 +33,9 @@ Decabot::Decabot(int delay, byte configuration){
 			//configure a servo on pin 16
 			pinMode(servoPin, OUTPUT);
 		}
+	}
+	if(bitRead(decabotConfiguration,1)){
+		//configure RFID 
 	}
 	
 }
@@ -71,6 +74,11 @@ void Decabot::boot(){
 			outputln(F("Servo motor S on 16(A2)"));
 			pinMode(servoPin, OUTPUT);
 		}
+	}
+	if(bitRead(decabotConfiguration,1)){
+		//configure RFID 
+		outputln(F("RFID mfrc522 on RST 9, SDA 10, MOSI 11, MISO 12, SCK 13"));
+		Serial.println("\tRFID lib must be loaded on sketch to work!");
 	}
 	outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
 	outputln(F("Step Motor on BAY1, BAY2"));
@@ -471,6 +479,17 @@ void Decabot::soundRecording() {
 		delay(50);
 	}
 	delay(200);
+}
+
+void Decabot::soundError(){
+  outputln(F("Error!"));
+  tone(buzzerPin, 391, 800);
+  delay(150);
+  noTone(buzzerPin);
+  delay(30);
+  tone(buzzerPin, 261, 1500);
+  delay(400);
+  noTone(buzzerPin);
 }
 
 void Decabot::oneStepLeft(int dir) {
@@ -939,6 +958,35 @@ void Decabot::codeEnd(){
 		soundEnd();
 		loadLedsCheck();
 		resetMotors();
+	}
+}
+
+void Decabot::abort(){
+	moving = 0;
+	stepsToMove = 0;
+	recording = 0;
+	executing = 0;
+	runningCodeIndex = 0;
+	actualMillis = 0;
+	lastLeftMillis = 0;
+	lastRightMillis = 0;
+	codeMillisBegin = 0;
+	outputln(F("Catastrophic failiure! Please reset!"));
+	ledMatrixClear();
+	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
+	ledMatrixSetRegister(2,B10100101);
+	ledMatrixSetRegister(3,B01000010);
+	ledMatrixSetRegister(4,B10100101);
+	ledMatrixSetRegister(6,B01111110);
+	ledMatrixSetRegister(7,B00001010);
+	ledMatrixSetRegister(8,B00000100);
+	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
+	resetMotors();
+	while(1){
+		digitalWrite(ledPin, HIGH);
+		delay(100);
+		digitalWrite(ledPin, LOW);
+		delay(100);
 	}
 }
 

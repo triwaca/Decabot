@@ -60,6 +60,7 @@ class Decabot
 		void soundBegin();
 		void soundBoot();
 		void soundEnd();
+		void soundError();
 		void soundRecording();
 		//basic movements
 		void resetMotors();
@@ -106,6 +107,7 @@ class Decabot
 		void adjustHeading();
 		void codeEnd();
 		void unknowCode();
+		void abort();
 		void saveCodeROM(int memoryBlock);
 		String programName(int memoryPosition);
 		//RFID functions
@@ -140,6 +142,11 @@ class Decabot
 		 7- Light sensors on A1,A3
 		 8- PIR sensor on A2
 		*/
+		int sck = 13;		//SPI
+		int miso = 12;		//SPI
+		int mosi = 11;		//SPI
+		int sda = 10;		//SS_SDA pin MFRC522
+		int reset = 9;		//RST pin MFRC522
 		int latchPin = 8;	//Pin connected to ST_CP of 74HC595
 		int clockPin = 7;	//Pin connected to SH_CP of 74HC595
 		int dataPin = 6;	//Pin connected to DS of 74HC595
@@ -156,6 +163,12 @@ class Decabot
 		String decabotOwner = "anybody@decabot.com";
 		String tmpOutput = "";
 		String inputSerialString;
+		//RFID variables
+		/*
+		byte rfidBuffer[18];  //data transfer buffer (16+2 bytes data+CRC)
+		byte size = sizeof(rfidBuffer);
+		uint8_t pageAddr = 0x06;	//rfid address to begin reading, 0x06 to Mifare Ultra
+		*/
 		//movements variables
 		int millisDelay = 4;
 		int leftStep = 0;
@@ -191,6 +204,7 @@ class Decabot
 		float varN = 0;
 		float varP = 0;
 		float varQ = 0;
+		//Face variables
 		int varA = 2;	//angry face
 		int varB = 1;	//mouth
 		int varC = 0;	//close eyebrows
@@ -256,4 +270,3 @@ class Decabot
 };
 
 #endif
-
