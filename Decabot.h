@@ -107,12 +107,14 @@ class Decabot
 		void adjustHeading();
 		void codeEnd();
 		void unknowCode();
+		void emergencyStop();
 		void abort();
 		void saveCodeROM(int memoryBlock);
 		String programName(int memoryPosition);
 		//RFID functions
 		void rfidCodeRecord();
 		void rfidCodeRecord(int blockMemory);
+		void injectRFID(String rfidData);
 		//ultrasonic functions
 		double measureDistance();
 		void objectDetection(bool forced);
@@ -164,6 +166,7 @@ class Decabot
 		String tmpOutput = "";
 		String inputSerialString;
 		//RFID variables
+		String inputRfidString;
 		/*
 		byte rfidBuffer[18];  //data transfer buffer (16+2 bytes data+CRC)
 		byte size = sizeof(rfidBuffer);

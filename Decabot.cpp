@@ -150,15 +150,14 @@ int Decabot::readButton() {
 		} else {
 			pressedButton = 1;
 		}
+		tmpOutput = F("button ");
+		tmpOutput.concat(pressedButton);
 		if(timerButton + 1000 < actualTimer){	//long press detected increases return number by 6
 			pressedButton += 6;
-			//Serial.println(timerButton);
-			//Serial.println(lastButtonValue);
+			tmpOutput.concat(F(" long "));
 		}
-		String msg = F("button ");
-		msg.concat(pressedButton);
-		msg.concat(F(" pressed!"));
-		outputln(msg);
+		tmpOutput.concat(F(" pressed!"));
+		outputln(tmpOutput);
 		executeButton(pressedButton);
 	}
 }
@@ -180,11 +179,15 @@ void Decabot::executeButton(int button){
 		case 5:		//memory blocks 1 to 4
 			run(3);
 			break;
-		case 6:		//memory blocks 1 to 4
+		case 6:		//rec stop button
 			if(executing) {
-				codeEnd();
+				emergencyStop();
 			} else {
-				rfidCodeRecord();
+				if(recording){
+					emergencyStop();
+				} else {
+					rfidCodeRecord();
+				}
 			}
 			break;
 		case 7:
@@ -194,13 +197,13 @@ void Decabot::executeButton(int button){
 			rfidCodeRecord(0);
 			break;
 		case 9:
-			rfidCodeRecord(0);
+			rfidCodeRecord(1);
 			break;
 		case 10:
-			rfidCodeRecord(0);
+			rfidCodeRecord(2);
 			break;
 		case 11:
-			rfidCodeRecord(0);
+			rfidCodeRecord(3);
 			break;
 		case 12:
 			formatROM();
@@ -209,11 +212,38 @@ void Decabot::executeButton(int button){
 }
 
 void Decabot::rfidCodeRecord() {
-	outputln("RFID not implemented yet!");
+	rfidCodeRecord(0);
 }
 
 void Decabot::rfidCodeRecord(int blockMemory) {
-	outputln("RFID not implemented yet!");
+	inputRfidString = "S" + (String)blockMemory;
+	int rfidRecordingMemoryBlock = blockMemory;
+	soundRecording();
+	tmpOutput = F("Recording RFID on memory ");
+	tmpOutput.concat(rfidRecordingMemoryBlock);
+	outputln(tmpOutput);
+	leftDirection = rightDirection = 1;
+	moving = 1;
+	recording = 1;
+	stepsToMove += 1500;
+}
+
+void Decabot::injectRFID(String rfidData){
+	stepsToMove += 1000;
+	tmpOutput = F("[RFID] data received:");
+	tmpOutput.concat(rfidData);
+	outputln(tmpOutput);
+	inputRfidString.concat(rfidData);
+	if(inputRfidString.indexOf('O')>0){
+		moving = 0;
+		recording = 0;
+		stepsToMove = 0;
+		resetMotors();
+		int rfidCodeSize = inputRfidString.length() + 1;
+		char inputRfidChar[rfidCodeSize]; 
+		inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
+		codeDomino(inputRfidChar);
+	}
 }
 
 void Decabot::resetMotors() {
@@ -648,11 +678,17 @@ void Decabot::saveCodeROM(int memoryBlock) {
 }
 
 void Decabot::run(){
-	soundBegin();
-	runningCodeIndex = 0;
-	codeMillisBegin = millis();
-	executing = 1;
-	nextCommand();
+	if(infiniteCode(0)=='[') {
+		soundBegin();
+		runningCodeIndex = 0;
+		codeMillisBegin = millis();
+		executing = 1;
+		nextCommand();
+	} else {
+		soundError();
+		outputln(F("No code loaded on RAM!"));
+	}
+	loadLedsCheck();
 }
 
 void Decabot::run(int blockMemory){
@@ -961,16 +997,25 @@ void Decabot::codeEnd(){
 	}
 }
 
-void Decabot::abort(){
+void Decabot::emergencyStop(){
+	outputln(F("Emergency stop!!!"));
+	//reset all variables
 	moving = 0;
 	stepsToMove = 0;
 	recording = 0;
 	executing = 0;
 	runningCodeIndex = 0;
+	repeatCalls = 0;
 	actualMillis = 0;
 	lastLeftMillis = 0;
 	lastRightMillis = 0;
 	codeMillisBegin = 0;
+	resetMotors();
+	loadLedsCheck();
+}
+
+void Decabot::abort(){
+	emergencyStop();
 	outputln(F("Catastrophic failiure! Please reset!"));
 	ledMatrixClear();
 	ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_OFF); //turn off
@@ -1074,6 +1119,11 @@ void Decabot::updateSteps(){
 		heading = rotatingTotal;
 		if(heading>=360) heading -= 360;
 		if(heading<0) heading += 360;
+		if(recording){
+			//if the forward movement during recording didn't find an END code in RFID, means that there was an error on recording 
+			soundError();
+			recording = 0;
+		}
 	}
 }
 
