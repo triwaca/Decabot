@@ -714,16 +714,58 @@ void Decabot::nextCommand(){
 		Serial.print(F(")"));
 		int parameterDigits = 0;
 		int parameterData = 0;
-		//check how many numbers are after the command
-		while(isDigit(infiniteCode(runningCodeIndex+1+parameterDigits))){
-			parameterDigits++;
-		}
-		int j=0;
-		for(parameterDigits;parameterDigits>0;parameterDigits--){
-			parameterData = parameterData + ((int)(infiniteCode(runningCodeIndex+parameterDigits)) - 48) * poten(10,j); 
-			j++;
+		int commandsToJump = 0;
+		//check if parameter is from a variable
+		if(infiniteCode(runningCodeIndex+1)=='$'){
+			commandsToJump = 2;
+			if(infiniteCode(runningCodeIndex+2)=='X'){
+				parameterData = varX;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='Y'){
+				parameterData = varY;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='Z'){
+				parameterData = varZ;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='N'){
+				parameterData = varN;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='P'){
+				parameterData = varP;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='Q'){
+				parameterData = varQ;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='A'){
+				parameterData = varA;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='B'){
+				parameterData = varB;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='C'){
+				parameterData = varC;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='E'){
+				parameterData = varE;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='R'){
+				//create a random number from 0 to 9
+				parameterData = random(10);
+				//commandsToJump++;
+			}
+		} else {
+			//check how many numbers are after the command
+			while(isDigit(infiniteCode(runningCodeIndex+1+parameterDigits))){
+				parameterDigits++;
+			}
+			int j=0;
+			for(parameterDigits;parameterDigits>0;parameterDigits--){
+				parameterData = parameterData + ((int)(infiniteCode(runningCodeIndex+parameterDigits)) - 48) * poten(10,j); 
+				j++;
+			}
 		}
 		codeInterpreter(infiniteCode(runningCodeIndex),parameterData);
+		runningCodeIndex += commandsToJump; //jump variable pieces
 		runningCodeIndex++;
 	} else {
 		runningCodeIndex++;
@@ -1153,14 +1195,29 @@ void Decabot::update(){
 			nextCommand();
 		}
 	}
-	if(millis()%objectDetectionDelay==0){ //object detection doesn't work while moving, because the self position is not incremental
+	//object detection routine
+	if(millis()>(objectDetectionMillis + objectDetectionDelay)){
+		objectDetectionMillis = millis();
 		objectDetection(0);
 	}
-	if(millis()%5000==0){
+	//loop one
+	if(millis()>(lastMillisLoopOne + (loopOneTime * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
+		lastMillisLoopOne = millis();
+		outputln(F("[loop1][/]"));
+		//run loop
+	}
+	//loop two
+	if(millis()>(lastMillisLoopTwo + (loopTwoTime * 1000))){
+		lastMillisLoopTwo = millis();
+		outputln(F("[loop2][/]"));
 		showPosition();
-		//ledFaceEyes(random(3)+4);
-		//ledFaceEyebrows(2,2);
-		//ledFaceMouth(random(4));
+		//run loop
+	}
+	//loop three
+	if(millis()>(lastMillisLoopThree + (loopThreeTime * 1000))){
+		lastMillisLoopThree = millis();
+		outputln(F("[loop3][/]"));
+		//run loop
 	}
 	readButton();
 	//check if has a led matrix and if need to update the led matrix
@@ -1480,4 +1537,18 @@ void Decabot::faceReadingRfid(){
 	ledFaceEyebrows(4,2,0);
 	ledFaceMouth(4,0);
 	printFace(0);
+}
+
+void Decabot::faceBlink(){
+	for(int i=0;i<5;i++){
+		ledFaceEyebrows(i,2,0);
+		printFace(0);
+		delay(10);
+	}
+	for(int i=4;i>=0;i--){
+		ledFaceEyebrows(i,2,0);
+		printFace(0);
+		delay(10);
+	}
+	faceChanged = 1;
 }

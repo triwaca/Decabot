@@ -132,6 +132,7 @@ class Decabot
 		void printFace(bool verbose);
 		void faceError();
 		void faceReadingRfid();
+		void faceBlink();
 	private:
 		byte decabotConfiguration = B00000000;
 		int decabotMaxBattery = 5000;	//maximum battery value
@@ -209,6 +210,13 @@ class Decabot
 		float varN = 0;
 		float varP = 0;
 		float varQ = 0;
+		//Code Domino Loop variables
+		int loopOneTime = 5;
+		long lastMillisLoopOne = 0;
+		int loopTwoTime = 20;
+		long lastMillisLoopTwo = 0;
+		int loopThreeTime = 60;
+		long lastMillisLoopThree = 0;
 		//Face variables
 		int varA = 2;	//angry face
 		int varB = 0;	//mouth
@@ -226,6 +234,7 @@ class Decabot
 		uint32_t ultrasonicTimer;
 		double lastDetection = 0;
 		int objectDetectionDelay = 500;
+		long objectDetectionMillis = 0;
 		int rotatingTotal = 0;
 		//private moving functions
 		void updateSteps();
