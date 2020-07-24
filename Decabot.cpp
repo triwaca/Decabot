@@ -62,8 +62,8 @@ void Decabot::boot(){
 		outputln(F("Led Matrix MAX7219 on CLK 4, DIN 5, CS 16(A2)"));
 		// init MAX2719 states
 		ledMatrixInit();
-		ledFaceEyes(5);
-		printFace();
+		ledFaceEyes(5,0);
+		printFace(0);
 	} else {
 		if(bitRead(decabotConfiguration,0)){
 			//configure a ultrasonic sensor on 4,5
@@ -463,10 +463,10 @@ void Decabot::beep(int time){
 
 void Decabot::soundBoot() {
 	digitalWrite(ledPin, HIGH);
-	ledFaceEyes(5);
+	ledFaceEyes(5,0);
 	for(int i=0;i<4;i++){
-		ledFaceMouth(i);
-		printFace();
+		ledFaceMouth(i,0);
+		printFace(0);
 		tone(buzzerPin, decabotMusic[i][0], decabotMusic[i][1]*200);
     	delay(decabotMusic[i][1]*200);
     	noTone(buzzerPin);
@@ -734,17 +734,17 @@ char Decabot::infiniteCode(int index){
 
 void Decabot::codeInterpreter(char command, int parameter){
 	if(command=='A') unknowCode();
-	if(command=='a') ledFaceEyebrows(varC, parameter);	//change angry state face
+	if(command=='a') ledFaceEyebrows(varC, parameter, 1);	//change angry state face
 	if(command=='B') codeGoTo(parameter);		//go to a position in code
-	if(command=='b') ledFaceMouth(parameter);	//change mouth
+	if(command=='b') ledFaceMouth(parameter, 1);	//change mouth
 	if(command=='C') unknowCode();
-	if(command=='c') ledFaceEyebrows(parameter, varA);	//change eyebrow close state
+	if(command=='c') ledFaceEyebrows(parameter, varA, 1);	//change eyebrow close state
 	if(command=='D') unknowCode();
 	if(command=='d') unknowCode();
 	if(command=='E') unknowCode();
-	if(command=='e') ledFaceEyes(parameter);	//move eyes
+	if(command=='e') ledFaceEyes(parameter,1);	//move eyes
 	if(command=='F') codeForward(parameter);	//move forward
-	if(command=='f') printFace();
+	if(command=='f') printFace(1);
 	if(command=='G') saveCodeROM(parameter);	
 	if(command=='g') unknowCode();
 	if(command=='H') unknowCode();
@@ -1157,7 +1157,7 @@ void Decabot::update(){
 	readButton();
 	//check if has a led matrix and if need to update the led matrix
 	if((bitRead(decabotConfiguration,3))&&faceChanged){
-		printFace();
+		printFace(1);
 		faceChanged = 0;
 	}
 	digitalWrite(ledPin, ledPinState);
@@ -1369,37 +1369,44 @@ void Decabot::ledFaceClearMem(){
 	}
 }
 
-void Decabot::ledFaceEyes(int position) {
+void Decabot::ledFaceEyes(int position, bool verbose) {
 	varE = position;
 	faceChanged = 1;
-	tmpOutput = F("[face eyes][");
-	tmpOutput.concat(position);
-	tmpOutput.concat(F("][/]"));
-	outputln(tmpOutput);
+	if(verbose){
+		tmpOutput = F("[face eyes][");
+		tmpOutput.concat(position);
+		tmpOutput.concat(F("][/]"));
+		outputln(tmpOutput);
+	}
 }
 
-void Decabot::ledFaceEyebrows(int closed, int angry){
+void Decabot::ledFaceEyebrows(int closed, int angry, bool verbose){
 	varA = angry;
 	varC = closed;
 	faceChanged = 1;
-	tmpOutput = F("[face eye brows][");
-	tmpOutput.concat(closed);
-	tmpOutput.concat(F("]["));
-	tmpOutput.concat(angry);
-	tmpOutput.concat(F("][/]"));
-	outputln(tmpOutput);
+	if(verbose){
+		tmpOutput = F("[face eye brows][");
+		tmpOutput.concat(closed);
+		tmpOutput.concat(F("]["));
+		tmpOutput.concat(angry);
+		tmpOutput.concat(F("][/]"));
+		outputln(tmpOutput);
+	}
 }
 
-void Decabot::ledFaceMouth(int index){
+void Decabot::ledFaceMouth(int index, bool verbose){
 	varB = index;
 	faceChanged = 1;
-	tmpOutput = F("[face mouth][");
-	tmpOutput.concat(index);
-	tmpOutput.concat(F("][/]"));
-	outputln(tmpOutput);
+	if(verbose){
+		tmpOutput = F("[face mouth][");
+		tmpOutput.concat(index);
+		tmpOutput.concat(F("][/]"));
+		outputln(tmpOutput);
+	}
+	
 }
 
-void Decabot::printFace(){
+void Decabot::printFace(bool verbose){
 	if(bitRead(decabotConfiguration,3)){
 		//clear face memory
 		ledFaceClearMem();
@@ -1445,8 +1452,8 @@ void Decabot::printFace(){
 			ledMatrixSetRegister(i+1,ledFaceMem[i]);
 			ledMatrixSetRegister(MAX7219_SHUTDOWN_REG, MAX7219_ON); //turn on
 		}
-		outputln(F("[leds face][/]"));
+		if(verbose)	outputln(F("[leds face][/]"));
 	} else {
-		outputln(F("[no led matrix][/]"));
+		if(verbose) outputln(F("[no led matrix][/]"));
 	}
 }

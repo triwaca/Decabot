@@ -126,10 +126,10 @@ class Decabot
 		void ledMatrixRandom();
 		void ledMatrixBattery(int value);
 		void ledFaceClearMem();
-		void ledFaceEyes(int position);
-		void ledFaceEyebrows(int closed, int angry);
-		void ledFaceMouth(int index);
-		void printFace();
+		void ledFaceEyes(int position, bool verbose);
+		void ledFaceEyebrows(int closed, int angry, bool verbose);
+		void ledFaceMouth(int index, bool verbose);
+		void printFace(bool verbose);
 	private:
 		byte decabotConfiguration = B00000000;
 		int decabotMaxBattery = 5000;	//maximum battery value
