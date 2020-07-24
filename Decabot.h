@@ -130,6 +130,8 @@ class Decabot
 		void ledFaceEyebrows(int closed, int angry, bool verbose);
 		void ledFaceMouth(int index, bool verbose);
 		void printFace(bool verbose);
+		void faceError();
+		void faceReadingRfid();
 	private:
 		byte decabotConfiguration = B00000000;
 		int decabotMaxBattery = 5000;	//maximum battery value
@@ -209,7 +211,7 @@ class Decabot
 		float varQ = 0;
 		//Face variables
 		int varA = 2;	//angry face
-		int varB = 1;	//mouth
+		int varB = 0;	//mouth
 		int varC = 0;	//close eyebrows
 		int varE = 5;	//eyeposition
 		//runtime repeat variables

@@ -216,19 +216,25 @@ void Decabot::rfidCodeRecord() {
 }
 
 void Decabot::rfidCodeRecord(int blockMemory) {
-	inputRfidString = "S" + (String)blockMemory;
-	int rfidRecordingMemoryBlock = blockMemory;
-	soundRecording();
-	tmpOutput = F("Recording RFID on memory ");
-	tmpOutput.concat(rfidRecordingMemoryBlock);
-	outputln(tmpOutput);
-	leftDirection = rightDirection = 1;
-	moving = 1;
-	recording = 1;
-	stepsToMove += 1500;
+	if(bitRead(decabotConfiguration,3)) {
+		inputRfidString = "S" + (String)blockMemory;
+		int rfidRecordingMemoryBlock = blockMemory;
+		soundRecording();
+		faceReadingRfid();
+		tmpOutput = F("Recording RFID on memory ");
+		tmpOutput.concat(rfidRecordingMemoryBlock);
+		outputln(tmpOutput);
+		leftDirection = rightDirection = 1;
+		moving = 1;
+		recording = 1;
+		stepsToMove += 1500;
+	} else {
+		outputln(F("[no RFID][/]"));
+	}
 }
 
 void Decabot::injectRFID(String rfidData){
+	if(bitRead(decabotConfiguration,3)) faceReadingRfid();
 	stepsToMove += 1000;
 	tmpOutput = F("[RFID] data received:");
 	tmpOutput.concat(rfidData);
@@ -512,6 +518,7 @@ void Decabot::soundRecording() {
 }
 
 void Decabot::soundError(){
+  if(bitRead(decabotConfiguration,3)) faceError();
   outputln(F("Error!"));
   tone(buzzerPin, 391, 800);
   delay(150);
@@ -1134,6 +1141,7 @@ void Decabot::update(){
 		updateSteps();
 		updateMotors();
 		if(millis()%200==0){
+			if(bitRead(decabotConfiguration,3)&&recording) faceReadingRfid();
 			if(ledPinState) {
 				ledPinState = 0;
 			} else { 
@@ -1157,7 +1165,7 @@ void Decabot::update(){
 	readButton();
 	//check if has a led matrix and if need to update the led matrix
 	if((bitRead(decabotConfiguration,3))&&faceChanged){
-		printFace(1);
+		printFace(0);
 		faceChanged = 0;
 	}
 	digitalWrite(ledPin, ledPinState);
@@ -1456,4 +1464,20 @@ void Decabot::printFace(bool verbose){
 	} else {
 		if(verbose) outputln(F("[no led matrix][/]"));
 	}
+}
+
+//prefab faces
+
+void Decabot::faceError(){
+	ledFaceEyes(5,0);
+	ledFaceEyebrows(2,3,0);
+	ledFaceMouth(7,0);
+	printFace(0);
+}
+
+void Decabot::faceReadingRfid(){
+	ledFaceEyes(random(3)+7,0);
+	ledFaceEyebrows(4,2,0);
+	ledFaceMouth(4,0);
+	printFace(0);
 }
