@@ -251,7 +251,8 @@ void Decabot::injectRFID(String rfidData){
 		char inputRfidChar[rfidCodeSize]; 
 		inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
 		codeDomino(inputRfidChar);
-	}
+		inputRfidString = "";
+	} 
 }
 
 void Decabot::resetMotors() {
@@ -655,7 +656,11 @@ void Decabot::codeDomino(char code[]){
 			runningCode[i] = code[i]; //fill the given code to RAM
 			if(runningCode[i]=='[') writingName = 1;
 			if(!writingName) Serial.print(F("[")); else Serial.print(F(" "));		
-			Serial.print(runningCode[i]);
+			if(isCodeDominoChar(runningCode[i])){
+				Serial.print(runningCode[i]);
+			} else {
+				Serial.print('-');
+			}
 			if(!writingName) Serial.print(F("]")); else Serial.print(F(" "));		
 			if(runningCode[i]==']') writingName = 0;
 			if(runningCode[i]=='O') break;
