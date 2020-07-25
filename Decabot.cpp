@@ -81,7 +81,9 @@ void Decabot::boot(){
 		Serial.println("\tRFID lib must be loaded on sketch to work!");
 	}
 	outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
+	outputln(F("Buzzer on 3"));
 	outputln(F("Step Motor on BAY1, BAY2"));
+	outputln(F("Buttons on A0"));
 	resetMotors();
 	whoAmI();
 	soundBoot();
@@ -453,8 +455,12 @@ void Decabot::dumpMemory(){
 			}
 			Serial.print("]\t");
 		}
-		Serial.print(infiniteCode(i));
-		if(infiniteCode(i)==' ') Serial.print('-');
+		char byteRead = infiniteCode(i);
+		if(isAlphaNumeric(byteRead)||byteRead=='['||byteRead==']'||byteRead=='?'||byteRead=='#'||byteRead=='$'){
+			Serial.print(byteRead);
+		} else {
+			Serial.print('-');
+		}
 	}
 	Serial.println("");
 	outputln(F("Dump memory complete!"));
