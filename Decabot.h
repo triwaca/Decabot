@@ -79,6 +79,7 @@ class Decabot
 		void loadLedsCheck();
 		//Code Domino
 		void update();
+		bool isCodeDominoChar(char command);
 		void codeDomino(char code[]);
 		void run();
 		void run(int blockMemory);

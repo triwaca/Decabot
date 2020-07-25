@@ -456,7 +456,7 @@ void Decabot::dumpMemory(){
 			Serial.print("]\t");
 		}
 		char byteRead = infiniteCode(i);
-		if(isAlphaNumeric(byteRead)||byteRead=='['||byteRead==']'||byteRead=='?'||byteRead=='#'||byteRead=='$'){
+		if(isCodeDominoChar(byteRead)){
 			Serial.print(byteRead);
 		} else {
 			Serial.print('-');
@@ -609,6 +609,11 @@ void Decabot::servo(int degrees){
 	} else {
 		outputln(F("[no servo][/]"));
 	}
+}
+
+bool Decabot::isCodeDominoChar(char command){
+	//used to sanitize code domino data
+	return (isAlphaNumeric(command)||command=='['||command==']'||command=='?'||command=='#'||command=='$');
 }
 
 void Decabot::codeDomino(char code[]){
