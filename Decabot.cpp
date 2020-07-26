@@ -236,23 +236,51 @@ void Decabot::rfidCodeRecord(int blockMemory) {
 }
 
 void Decabot::injectRFID(String rfidData){
-	if(bitRead(decabotConfiguration,3)) faceReadingRfid();
-	stepsToMove += 1000;
-	tmpOutput = F("[RFID] data received:");
-	tmpOutput.concat(rfidData);
-	outputln(tmpOutput);
-	inputRfidString.concat(rfidData);
-	if(inputRfidString.indexOf('O')>0){
-		moving = 0;
-		recording = 0;
-		stepsToMove = 0;
-		resetMotors();
-		int rfidCodeSize = inputRfidString.length() + 1;
-		char inputRfidChar[rfidCodeSize]; 
-		inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
-		codeDomino(inputRfidChar);
-		inputRfidString = "";
-	} 
+	if(recording){
+		if(bitRead(decabotConfiguration,3)) faceReadingRfid();
+		stepsToMove += 1000;
+		tmpOutput = F("[RFID] data received:");
+		tmpOutput.concat(rfidData);
+		outputln(tmpOutput);
+		inputRfidString.concat(rfidData);
+		if(inputRfidString.indexOf('O')>0){
+			moving = 0;
+			recording = 0;
+			stepsToMove = 0;
+			resetMotors();
+			int rfidCodeSize = inputRfidString.length() + 1;
+			char inputRfidChar[rfidCodeSize]; 
+			inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
+			codeDomino(inputRfidChar);
+			inputRfidString = "";
+		} 
+	} else {
+		if(!executing){
+			//sanitize CD code
+			if(rfidData.indexOf('[')<0) rfidData = "[rfid]" + rfidData;
+			rfidData.concat("O");	//include an END command for precaution
+			tmpOutput = F("[RFID] data received:");
+			tmpOutput.concat(rfidData);
+			outputln(tmpOutput);
+			int rfidCodeSize = rfidData.length() + 1;
+			char inputRfidChar[rfidCodeSize]; 
+			rfidData.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
+			codeDomino(inputRfidChar);
+			rfidData = "";
+			run();
+		} else {
+			// Ignore RFID data while running a Code Domino. 
+			// Must think about it, if it can pause the execution, run, and go back
+			outputln(F("Ignoring RFID data..."));
+		}
+	}
+}
+
+void Decabot::injectRFIDposition(String rfidData){
+	outputln(F("[RFID] position received:"));
+	String XnewPos = rfidData.substring(rfidData.indexOf('X')+1,rfidData.indexOf('Y'));
+	String YnewPos = rfidData.substring(rfidData.indexOf('Y')+1,rfidData.indexOf(')'));
+	setPosition(XnewPos.toInt(), YnewPos.toInt());
 }
 
 void Decabot::resetMotors() {
@@ -614,7 +642,7 @@ void Decabot::servo(int degrees){
 
 bool Decabot::isCodeDominoChar(char command){
 	//used to sanitize code domino data
-	return (isAlphaNumeric(command)||command=='['||command==']'||command=='?'||command=='#'||command=='$');
+	return (isAlphaNumeric(command)||command=='['||command==']'||command=='?'||command=='#'||command=='$'||command=='('||command==')');
 }
 
 void Decabot::codeDomino(char code[]){
@@ -1177,7 +1205,7 @@ void Decabot::updateSteps(){
 			oneStepRight(rightDirection);
 			if(!turningLeft) stepsToMove--;
 		}
-		adjustHeading();
+		if(!recording) adjustHeading();
 	} else {
 		moving = 0;
 		//recalibrate the heading after the spin
@@ -1211,29 +1239,31 @@ void Decabot::update(){
 			nextCommand();
 		}
 	}
-	//object detection routine
-	if(millis()>(objectDetectionMillis + objectDetectionDelay)){
-		objectDetectionMillis = millis();
-		objectDetection(0);
-	}
-	//loop one
-	if(millis()>(lastMillisLoopOne + (loopOneTime * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
-		lastMillisLoopOne = millis();
-		outputln(F("[loop1][/]"));
-		//run loop
-	}
-	//loop two
-	if(millis()>(lastMillisLoopTwo + (loopTwoTime * 1000))){
-		lastMillisLoopTwo = millis();
-		outputln(F("[loop2][/]"));
-		showPosition();
-		//run loop
-	}
-	//loop three
-	if(millis()>(lastMillisLoopThree + (loopThreeTime * 1000))){
-		lastMillisLoopThree = millis();
-		outputln(F("[loop3][/]"));
-		//run loop
+	if(!recording){ //none of this functions run during the recording RFID process
+		//object detection routine
+		if(millis()>(objectDetectionMillis + objectDetectionDelay)){
+			objectDetectionMillis = millis();
+			objectDetection(0);
+		}
+		//loop one
+		if(millis()>(lastMillisLoopOne + (loopOneTime * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
+			lastMillisLoopOne = millis();
+			outputln(F("[loop1][/]"));
+			//run loop
+		}
+		//loop two
+		if(millis()>(lastMillisLoopTwo + (loopTwoTime * 1000))){
+			lastMillisLoopTwo = millis();
+			outputln(F("[loop2][/]"));
+			showPosition();
+			//run loop
+		}
+		//loop three
+		if(millis()>(lastMillisLoopThree + (loopThreeTime * 1000))){
+			lastMillisLoopThree = millis();
+			outputln(F("[loop3][/]"));
+			//run loop
+		}
 	}
 	readButton();
 	//check if has a led matrix and if need to update the led matrix

@@ -116,6 +116,7 @@ class Decabot
 		void rfidCodeRecord();
 		void rfidCodeRecord(int blockMemory);
 		void injectRFID(String rfidData);
+		void injectRFIDposition(String rfidData);
 		//ultrasonic functions
 		double measureDistance();
 		void objectDetection(bool forced);
