@@ -214,12 +214,23 @@ void Decabot::executeButton(int button){
 }
 
 void Decabot::rfidCodeRecord() {
-	rfidCodeRecord(0);
+	if(bitRead(decabotConfiguration,3)) {
+		inputRfidString = "[rfid]";
+		soundRecording();
+		faceReadingRfid();
+		outputln(F("Recording RFID on RAM"));
+		leftDirection = rightDirection = 1;
+		moving = 1;
+		recording = 1;
+		stepsToMove += 1500;
+	} else {
+		outputln(F("[no RFID][/]"));
+	}
 }
 
 void Decabot::rfidCodeRecord(int blockMemory) {
 	if(bitRead(decabotConfiguration,3)) {
-		inputRfidString = "S" + (String)blockMemory;
+		inputRfidString = "S" + (String)blockMemory + "[rfid]";
 		int rfidRecordingMemoryBlock = blockMemory;
 		soundRecording();
 		faceReadingRfid();
@@ -236,49 +247,55 @@ void Decabot::rfidCodeRecord(int blockMemory) {
 }
 
 void Decabot::injectRFID(String rfidData){
-	if(recording){
-		if(bitRead(decabotConfiguration,3)) faceReadingRfid();
-		stepsToMove += 1000;
-		tmpOutput = F("[RFID] data received:");
-		tmpOutput.concat(rfidData);
-		outputln(tmpOutput);
-		inputRfidString.concat(rfidData);
-		if(inputRfidString.indexOf('O')>0){
-			moving = 0;
-			recording = 0;
-			stepsToMove = 0;
-			resetMotors();
-			inputRfidString.concat("O");	//include an END command for precaution
-			int rfidCodeSize = inputRfidString.length() + 1;
-			if(rfidCodeSize>128) {
-				soundError();
-				outputln(F("RFID code > 128 bytes!"));
-				return;
-			}
-			char inputRfidChar[rfidCodeSize]; 
-			inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
-			codeDomino(inputRfidChar);
-			inputRfidString = "";
-		} 
-	} else {
-		if(!executing){
-			//sanitize CD code
-			if(rfidData.indexOf('[')<0) rfidData = "[rfid]" + rfidData;
-			rfidData.concat("O");	//include an END command for precaution
-			tmpOutput = F("[RFID] data received:");
-			tmpOutput.concat(rfidData);
+	if(rfidData.substring(0,1)=="["){	//every rfid Code Domino piece must initiate with []
+		if(recording){
+			if(bitRead(decabotConfiguration,3)) faceReadingRfid();
+			stepsToMove += 1000;
+			tmpOutput = F("[RFID] data received: ");
+			tmpOutput.concat(rfidData.substring(rfidData.indexOf("]")+1));
 			outputln(tmpOutput);
-			int rfidCodeSize = rfidData.length() + 1;
-			char inputRfidChar[rfidCodeSize]; 
-			rfidData.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
-			codeDomino(inputRfidChar);
-			rfidData = "";
-			run();
+			inputRfidString.concat(rfidData.substring(rfidData.indexOf("]")+1));
+			if(inputRfidString.indexOf('O')>0){
+				moving = 0;
+				recording = 0;
+				stepsToMove = 0;
+				resetMotors();
+				inputRfidString.concat("O");	//include an END command for precaution
+				int rfidCodeSize = inputRfidString.length() + 1;
+				if(rfidCodeSize>128) {
+					soundError();
+					outputln(F("RFID code > 128 bytes!"));
+					return;
+				}
+				char inputRfidChar[rfidCodeSize]; 
+				inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
+				codeDomino(inputRfidChar);
+				inputRfidString = "";
+			} 
 		} else {
-			// Ignore RFID data while running a Code Domino. 
-			// Must think about it, if it can pause the execution, run, and go back
-			outputln(F("Ignoring RFID data..."));
+			if(!executing){
+				//sanitize CD code
+				if(rfidData.indexOf('[')==rfidData.indexOf(']')+1) rfidData = "[rfid]" + rfidData.substring(rfidData.indexOf("]"+1));
+				rfidData.concat("O");	//include an END command for precaution
+				tmpOutput = F("[RFID] data received:");
+				tmpOutput.concat(rfidData);
+				outputln(tmpOutput);
+				int rfidCodeSize = rfidData.length() + 1;
+				char inputRfidChar[rfidCodeSize]; 
+				rfidData.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
+				codeDomino(inputRfidChar);
+				rfidData = "";
+				run();
+			} else {
+				// Ignore RFID data while running a Code Domino. 
+				// Must think about it, if it can pause the execution, run, and go back
+				outputln(F("Ignoring RFID data..."));
+			}
 		}
+	} else {
+		soundError();
+		Serial.println(rfidData);
+		outputln(F("Not a Code Domino piece!"));
 	}
 }
 
@@ -922,7 +939,7 @@ void Decabot::loadLedsCheck(){
 }
 
 void Decabot::unknowCode(){
-	outputln("Unknow command");
+	Serial.println("Unknow command");
 }
 
 void Decabot::codeForward(int distance){
