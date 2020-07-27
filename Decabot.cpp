@@ -248,7 +248,13 @@ void Decabot::injectRFID(String rfidData){
 			recording = 0;
 			stepsToMove = 0;
 			resetMotors();
+			inputRfidString.concat("O");	//include an END command for precaution
 			int rfidCodeSize = inputRfidString.length() + 1;
+			if(rfidCodeSize>128) {
+				soundError();
+				outputln(F("RFID code > 128 bytes!"));
+				return;
+			}
 			char inputRfidChar[rfidCodeSize]; 
 			inputRfidString.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
 			codeDomino(inputRfidChar);
@@ -826,60 +832,64 @@ char Decabot::infiniteCode(int index){
 }
 
 void Decabot::codeInterpreter(char command, int parameter){
-	if(command=='A') unknowCode();
-	if(command=='a') ledFaceEyebrows(varC, parameter, 1);	//change angry state face
-	if(command=='B') codeGoTo(parameter);		//go to a position in code
-	if(command=='b') ledFaceMouth(parameter, 1);	//change mouth
-	if(command=='C') unknowCode();
-	if(command=='c') ledFaceEyebrows(parameter, varA, 1);	//change eyebrow close state
-	if(command=='D') unknowCode();
-	if(command=='d') unknowCode();
-	if(command=='E') unknowCode();
-	if(command=='e') ledFaceEyes(parameter,1);	//move eyes
-	if(command=='F') codeForward(parameter);	//move forward
-	if(command=='f') printFace(1);
-	if(command=='G') saveCodeROM(parameter);	
-	if(command=='g') unknowCode();
-	if(command=='H') unknowCode();
-	if(command=='h') servo(parameter);		//move servo to the angle
-	if(command=='I') unknowCode();
-	if(command=='i') unknowCode();
-	if(command=='J') unknowCode();
-	if(command=='j') ledMatrixBattery(measureBattery());
-	if(command=='K') unknowCode();
-	if(command=='k') unknowCode();
-	if(command=='L') codeLeft(parameter);		//turn left
-	if(command=='l') unknowCode();
-	if(command=='M') codeMusic(parameter);		//play sound
-	if(command=='m') dumpMemory();			//dump memory on serial
-	if(command=='N') unknowCode();
-	if(command=='n') sayMyName();			//return decabot name
-	if(command=='O') codeEnd();			//end of block of code
-	if(command=='o') unknowCode();
-	if(command=='P') servo(90);
-	if(command=='p') servo(0);
-	if(command=='Q') unknowCode();
-	if(command=='q') unknowCode();
-	if(command=='R') codeRight(parameter);		//turn right
-	if(command=='r') run();
-	if(command=='S') saveCodeROM(parameter);
-	if(command=='s') codeSpeed(parameter);		//set temporary motor speed
-	if(command=='T') unknowCode();
-	if(command=='t') unknowCode();
-	if(command=='U') objectDetection(1);
-	if(command=='u') codeScanObjectPrecision(parameter);
-	if(command=='V') unknowCode();
-	if(command=='W') codeWait(parameter);		//wait 
-	if(command=='w') whoAmI();
-	if(command=='X') codeRepeat(parameter);
-	if(command=='x') setPosition(parameter,yPos);	//define the X position in the arena
-	if(command=='Y') codeStopRepeat();
-	if(command=='y') setPosition(xPos,parameter);	//defune the Y position in the arena
-	if(command=='Z') codeRunBlockMem(parameter);	//run a block of code from ROM
-	if(command=='z') unknowCode();
-	if(command=='[') programName(runningCodeIndex);
-	if(command=='?') showPosition();
-	if(command=='#') ledMatrixRandom();
+	if(isCodeDominoChar(command)){
+		if(command=='A') unknowCode();
+		if(command=='a') ledFaceEyebrows(varC, parameter, 1);	//change angry state face
+		if(command=='B') codeGoTo(parameter);		//go to a position in code
+		if(command=='b') ledFaceMouth(parameter, 1);	//change mouth
+		if(command=='C') unknowCode();
+		if(command=='c') ledFaceEyebrows(parameter, varA, 1);	//change eyebrow close state
+		if(command=='D') unknowCode();
+		if(command=='d') unknowCode();
+		if(command=='E') unknowCode();
+		if(command=='e') ledFaceEyes(parameter,1);	//move eyes
+		if(command=='F') codeForward(parameter);	//move forward
+		if(command=='f') printFace(1);
+		if(command=='G') saveCodeROM(parameter);	
+		if(command=='g') unknowCode();
+		if(command=='H') unknowCode();
+		if(command=='h') servo(parameter);		//move servo to the angle
+		if(command=='I') unknowCode();
+		if(command=='i') unknowCode();
+		if(command=='J') unknowCode();
+		if(command=='j') ledMatrixBattery(measureBattery());
+		if(command=='K') unknowCode();
+		if(command=='k') unknowCode();
+		if(command=='L') codeLeft(parameter);		//turn left
+		if(command=='l') unknowCode();
+		if(command=='M') codeMusic(parameter);		//play sound
+		if(command=='m') dumpMemory();			//dump memory on serial
+		if(command=='N') unknowCode();
+		if(command=='n') sayMyName();			//return decabot name
+		if(command=='O') codeEnd();			//end of block of code
+		if(command=='o') unknowCode();
+		if(command=='P') servo(90);
+		if(command=='p') servo(0);
+		if(command=='Q') unknowCode();
+		if(command=='q') unknowCode();
+		if(command=='R') codeRight(parameter);		//turn right
+		if(command=='r') run();
+		if(command=='S') saveCodeROM(parameter);
+		if(command=='s') codeSpeed(parameter);		//set temporary motor speed
+		if(command=='T') unknowCode();
+		if(command=='t') unknowCode();
+		if(command=='U') objectDetection(1);
+		if(command=='u') codeScanObjectPrecision(parameter);
+		if(command=='V') unknowCode();
+		if(command=='W') codeWait(parameter);		//wait 
+		if(command=='w') whoAmI();
+		if(command=='X') codeRepeat(parameter);
+		if(command=='x') setPosition(parameter,yPos);	//define the X position in the arena
+		if(command=='Y') codeStopRepeat();
+		if(command=='y') setPosition(xPos,parameter);	//defune the Y position in the arena
+		if(command=='Z') codeRunBlockMem(parameter);	//run a block of code from ROM
+		if(command=='z') unknowCode();
+		if(command=='[') programName(runningCodeIndex);
+		if(command=='?') showPosition();
+		if(command=='#') ledMatrixRandom();
+	} else {
+		unknowCode();
+	}
 }
 
 String Decabot::programName(int memoryPosition){
