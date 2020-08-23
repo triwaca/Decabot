@@ -140,14 +140,14 @@ class Decabot
 		int decabotMaxBattery = 5000;	//maximum battery value
 		int decabotMinBattery = 4000;	//minimum battery value
 		/*defines wich configuration the robot is set
-		 1- Ultrasonic on 4,5
-		 2- RFID on 9-13
-		 3- Servo on A2
-		 4- Led Matrix on 4,5,A2
-		 5- Gyroscope on i2c
-		 6- Laser distance sensor on i2c
-		 7- Light sensors on A1,A3
-		 8- PIR sensor on A2
+		0- Ultrasonic on 4,5
+		1- RFID on 9-13
+		2- Servo on A2
+		3- Led Matrix on 4,5,A2
+		4- Gyroscope on i2c
+		5- Laser distance sensor on i2c
+		6- Step motor drives on 7 to 13
+		7- PIR sensor on A2
 		*/
 		int sck = 13;		//SPI
 		int miso = 12;		//SPI

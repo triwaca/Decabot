@@ -7,6 +7,16 @@
 #include"Decabot.h"
 
 Decabot::Decabot(int delay, byte configuration){
+	/*defines wich configuration the robot is set
+	0- Ultrasonic on 4,5
+	1- RFID on 9-13
+	2- Servo on A2
+	3- Led Matrix on 4,5,A2
+	4- Gyroscope on i2c
+	5- Laser distance sensor on i2c
+	6- Step motor drives on 7 to 13
+	7- PIR sensor on A2
+	*/
 	decabotConfiguration = configuration;
 	//define pin modes for shift register, buzzer and LED
 	millisDelay = delay;
@@ -15,6 +25,12 @@ Decabot::Decabot(int delay, byte configuration){
 	pinMode(latchPin, OUTPUT);
 	pinMode(clockPin, OUTPUT);
 	pinMode(dataPin, OUTPUT);
+	if(bitRead(decabotConfiguration,6)){
+		//define pin modes for direct connection to step motor controllers 6 to 13. 
+		for(int i=6;i<14;i++){
+			pinMode(i, OUTPUT);
+		}
+	}
 	if(bitRead(decabotConfiguration,3)){
 		//configure a 8 x 8 led display on A2,4,5
   		pinMode(ledLatchPin, OUTPUT); 
@@ -75,15 +91,21 @@ void Decabot::boot(){
 			pinMode(servoPin, OUTPUT);
 		}
 	}
-	if(bitRead(decabotConfiguration,1)){
-		//configure RFID 
-		outputln(F("RFID mfrc522 on RST 9, SDA 10, MOSI 11, MISO 12, SCK 13"));
-		Serial.println("\tRFID lib must be loaded on sketch to work!");
+	if(bitRead(decabotConfiguration,6)){
+		//configure Step Motor Drives
+		outputln(F("ULN2003 Step Motor Driver Right on 6, 7, 8, 9"));
+		outputln(F("ULN2003 Step Motor Driver Left on 10, 11, 12, 13"));
+	} else {
+		if(bitRead(decabotConfiguration,1)){
+			//configure RFID 
+			outputln(F("RFID mfrc522 on RST 9, SDA 10, MOSI 11, MISO 12, SCK 13"));
+			Serial.println("\tRFID lib must be loaded on sketch to work!");
+		}
+		outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
+		outputln(F("Buzzer on 3"));
+		outputln(F("Step Motor on BAY1, BAY2"));
+		outputln(F("Buttons on A0"));
 	}
-	outputln(F("Shift register 74CH595 on LATCH 8, CLK 7, DATA 6"));
-	outputln(F("Buzzer on 3"));
-	outputln(F("Step Motor on BAY1, BAY2"));
-	outputln(F("Buttons on A0"));
 	resetMotors();
 	whoAmI();
 	soundBoot();
@@ -122,45 +144,47 @@ void Decabot::runCodeOnSerial(){
 }
 
 int Decabot::readButton() {
-	int buttonValue = analogRead(A0);
-	int pressedButton = 0;
-	if((buttonValue > 200)&&(timerButton + 1000 < millis())){
-		tone(buzzerPin, 440, 200);	//beep on hold
-	}
-	if((buttonValue > 200)&&!lastButtonState){
-		beep(100);
-		lastButtonState = 1;
-		lastButtonValue = buttonValue;
-		timerButton = millis();
-		digitalWrite(ledPin, 1);
-	}
-	if((buttonValue <= 200)&&lastButtonState){
-		noTone(buzzerPin);
-		lastButtonState = 0;
-		digitalWrite(ledPin, 0);
-		long actualTimer = millis();
-		if(lastButtonValue<709) {
-			pressedButton = 6;
-		} else if(lastButtonValue<761){
-			pressedButton = 5;
-		} else if(lastButtonValue<822){
-			pressedButton = 4;
-		} else if(lastButtonValue<894){
-			pressedButton = 3;
-		} else if(lastButtonValue<977){
-			pressedButton = 2;
-		} else {
-			pressedButton = 1;
+	if(!bitRead(decabotConfiguration,6)){ //check if has buttons (no Shield)
+		int buttonValue = analogRead(A0);
+		int pressedButton = 0;
+		if((buttonValue > 200)&&(timerButton + 1000 < millis())){
+			tone(buzzerPin, 440, 200);	//beep on hold
 		}
-		tmpOutput = F("button ");
-		tmpOutput.concat(pressedButton);
-		if(timerButton + 1000 < actualTimer){	//long press detected increases return number by 6
-			pressedButton += 6;
-			tmpOutput.concat(F(" long "));
+		if((buttonValue > 200)&&!lastButtonState){
+			beep(100);
+			lastButtonState = 1;
+			lastButtonValue = buttonValue;
+			timerButton = millis();
+			digitalWrite(ledPin, 1);
 		}
-		tmpOutput.concat(F(" pressed!"));
-		outputln(tmpOutput);
-		executeButton(pressedButton);
+		if((buttonValue <= 200)&&lastButtonState){
+			noTone(buzzerPin);
+			lastButtonState = 0;
+			digitalWrite(ledPin, 0);
+			long actualTimer = millis();
+			if(lastButtonValue<709) {
+				pressedButton = 6;
+			} else if(lastButtonValue<761){
+				pressedButton = 5;
+			} else if(lastButtonValue<822){
+				pressedButton = 4;
+			} else if(lastButtonValue<894){
+				pressedButton = 3;
+			} else if(lastButtonValue<977){
+				pressedButton = 2;
+			} else {
+				pressedButton = 1;
+			}
+			tmpOutput = F("button ");
+			tmpOutput.concat(pressedButton);
+			if(timerButton + 1000 < actualTimer){	//long press detected increases return number by 6
+				pressedButton += 6;
+				tmpOutput.concat(F(" long "));
+			}
+			tmpOutput.concat(F(" pressed!"));
+			outputln(tmpOutput);
+			executeButton(pressedButton);
+		}
 	}
 }
 
@@ -312,9 +336,15 @@ void Decabot::resetMotors() {
 }
 
 void Decabot::updateMotors(byte data){
-	digitalWrite(latchPin, LOW);
-	shiftOut(dataPin, clockPin, MSBFIRST, data); //Send all off to 74HC595
-	digitalWrite(latchPin, HIGH);
+	if(bitRead(decabotConfiguration,6)){
+		for(int i=0;i<8;i++){
+			digitalWrite(i+6,bitRead(data,i));
+		}
+	} else {
+		digitalWrite(latchPin, LOW);
+		shiftOut(dataPin, clockPin, MSBFIRST, data); //Send all off to 74HC595
+		digitalWrite(latchPin, HIGH);
+	}
 }
 
 void Decabot::updateMotors(){
@@ -346,9 +376,15 @@ void Decabot::updateMotors(){
           rightBin = B00001100;
           break;
       }
-      digitalWrite(latchPin, LOW);
-      shiftOut(dataPin, clockPin, MSBFIRST, leftBin | rightBin); //Send all off to 74HC595
-      digitalWrite(latchPin, HIGH);
+	  if(bitRead(decabotConfiguration,6)){
+		for(int i=0;i<8;i++){
+			digitalWrite(i+6,bitRead(leftBin | rightBin,i));
+		}
+	  } else {
+		digitalWrite(latchPin, LOW);
+		shiftOut(dataPin, clockPin, MSBFIRST, leftBin | rightBin); //Send all off to 74HC595
+		digitalWrite(latchPin, HIGH);
+	  }
 }
 
 void Decabot::whoAmI() {
