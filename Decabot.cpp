@@ -114,10 +114,10 @@ void Decabot::boot(){
 }
 
 void Decabot::runCodeDominoSetup(){
-	if(infiniteCode(902)=='[') {
+	if(infiniteCode(768)=='[') {
 		outputln(F("found CodeDomino on setup..."));
-		//outputln(programName(774));
-		run(10);
+		outputln(programName(768));
+		run(10,0);
 	}
 }
 
@@ -194,16 +194,16 @@ void Decabot::executeButton(int button){
 			run();
 			break;
 		case 2:		//memory blocks 1 to 4
-			run(0);
+			run(0,0);
 			break;
 		case 3:		//memory blocks 1 to 4
-			run(1);
+			run(1,0);
 			break;
 		case 4:		//memory blocks 1 to 4
-			run(2);
+			run(2,0);
 			break;
 		case 5:		//memory blocks 1 to 4
-			run(3);
+			run(3,0);
 			break;
 		case 6:		//rec stop button
 			if(executing) {
@@ -475,6 +475,14 @@ void Decabot::outputln(String message) {
 	for(int i=0;i<repeatCalls;i++) msg.concat(F(" | "));
 	msg.concat(message);
 	Serial.println(msg);
+}
+
+void Decabot::erase(int blockMemory){
+	soundRecording();
+	EEPROM.update(blockMemory*64,'O'); //soft erase a program changing the 1st byte to a stop Code Domino command (O)
+	tmpOutput = F("[erased] memory block [");
+	tmpOutput.concat(blockMemory);
+	outputln(tmpOutput);
 }
 
 void Decabot::formatROM(){
@@ -788,6 +796,7 @@ void Decabot::saveCodeROM(int memoryBlock) {
 }
 
 void Decabot::run(){
+	runningSounds = 1;
 	if(infiniteCode(0)=='[') {
 		soundBegin();
 		runningCodeIndex = 0;
@@ -801,8 +810,9 @@ void Decabot::run(){
 	loadLedsCheck();
 }
 
-void Decabot::run(int blockMemory){
-	soundBegin();
+void Decabot::run(int blockMemory, bool soundsOn){
+	if(soundsOn) soundBegin();
+	runningSounds = soundsOn;
 	runningCodeIndex = (blockMemory * 64) + 128;
 	codeMillisBegin = millis();
 	executing = 1;
@@ -894,7 +904,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 		if(command=='c') ledFaceEyebrows(parameter, varA, 1);	//change eyebrow close state
 		if(command=='D') unknowCode();
 		if(command=='d') unknowCode();
-		if(command=='E') unknowCode();
+		if(command=='E') erase(parameter);		//soft erase a memory block
 		if(command=='e') ledFaceEyes(parameter,1);	//move eyes
 		if(command=='F') codeForward(parameter);	//move forward
 		if(command=='f') printFace(1);
@@ -1147,7 +1157,7 @@ void Decabot::codeEnd(){
 			Serial.print(runTime);
 			Serial.println(F(" second(s)"));
 		}
-		soundEnd();
+		if(runningSounds) soundEnd();
 		loadLedsCheck();
 		resetMotors();
 	}

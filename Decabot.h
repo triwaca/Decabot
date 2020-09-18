@@ -51,6 +51,7 @@ class Decabot
 		void outputln(String message);
 		void output(String message);
 		void dumpMemory();
+		void erase(int blockMemory);
 		void formatROM();
 		void primeDirectives();
 		void setMaxBattery(int value);
@@ -82,7 +83,7 @@ class Decabot
 		bool isCodeDominoChar(char command);
 		void codeDomino(char code[]);
 		void run();
-		void run(int blockMemory);
+		void run(int blockMemory, bool soundsOn);
 		void runCodeDominoSetup();
 		void checkCodeDominoLoops();
 		void nextCommand();
@@ -283,6 +284,7 @@ class Decabot
 			{440,2},
 			{880,1}
 		};
+		bool runningSounds = 1;
 };
 
 #endif
