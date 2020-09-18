@@ -861,6 +861,15 @@ void Decabot::nextCommand(){
 			if(infiniteCode(runningCodeIndex+2)=='E'){
 				parameterData = varE;
 			}
+			if(infiniteCode(runningCodeIndex+2)=='I'){
+				parameterData = varI;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='J'){
+				parameterData = varJ;
+			}
+			if(infiniteCode(runningCodeIndex+2)=='K'){
+				parameterData = varK;
+			}
 			if(infiniteCode(runningCodeIndex+2)=='R'){
 				//create a random number from 0 to 9
 				parameterData = random(10);
@@ -1319,20 +1328,23 @@ void Decabot::update(){
 			objectDetection(0);
 		}
 		//loop one
-		if(millis()>(lastMillisLoopOne + (loopOneTime * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
+		if(millis()>(lastMillisLoopOne + (varI * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
 			lastMillisLoopOne = millis();
-			outputln(F("[loop1][/]"));
-			//run loop
+			if(infiniteCode(832)=='[') {
+				outputln(F("[loop1][/]"));
+				outputln(programName(832));
+				run(11,0);
+			}
 		}
 		//loop two
-		if(millis()>(lastMillisLoopTwo + (loopTwoTime * 1000))){
+		if(millis()>(lastMillisLoopTwo + (varJ * 1000))){
 			lastMillisLoopTwo = millis();
 			outputln(F("[loop2][/]"));
 			showPosition();
 			//run loop
 		}
 		//loop three
-		if(millis()>(lastMillisLoopThree + (loopThreeTime * 1000))){
+		if(millis()>(lastMillisLoopThree + (varK * 1000))){
 			lastMillisLoopThree = millis();
 			outputln(F("[loop3][/]"));
 			//run loop
