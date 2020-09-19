@@ -1327,8 +1327,12 @@ void Decabot::update(){
 			objectDetectionMillis = millis();
 			objectDetection(0);
 		}
+		// Loops call programs to work in time to time.
+		// Each loop has a timer based on a variable: 1 - I, 2 - J, 3 - K. 
+		// Users can change the loop timers changing the variables. 
+		// Each loop also has a function to run: Face blink, show position, and measure battery.
 		//loop one
-		if(millis()>(lastMillisLoopOne + (varI * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
+		if(millis()>(lastMillisLoopOne + (varI * 1000))){
 			lastMillisLoopOne = millis();
 			if(infiniteCode(832)=='[') {
 				tmpOutput = F("[loop1][");
@@ -1337,6 +1341,7 @@ void Decabot::update(){
 				outputln(tmpOutput);
 				run(11,0);
 			}
+			faceBlink();
 		}
 		//loop two
 		if(millis()>(lastMillisLoopTwo + (varJ * 1000))){
@@ -1360,6 +1365,7 @@ void Decabot::update(){
 				outputln(tmpOutput);
 				run(12,0);
 			}
+			measureBattery();
 		}
 	}
 	readButton();
@@ -1378,7 +1384,6 @@ void Decabot::checkCodeDominoLoops(){
 
 double Decabot::measureDistance(){
 	ultrasonicTimer = millis();
-	// Pulso de 5V por pelo menos 10us para iniciar medição.
 	// 5V pulse by at least 10 milisseconds to measure
 	digitalWrite(trigPin, HIGH);
 	delayMicroseconds(11);
@@ -1387,6 +1392,10 @@ double Decabot::measureDistance(){
 	double distance = 5 + 0.01715 * pulseTime; //plus 5 centimeters, because the sensor is on the edge of the robot
 	// filter if the sensor is not installed, or high imprecise data
 	if((distance!=0)&&(distance<100)){
+		tmpOutput = F("[ultrasonic][");
+		tmpOutput.concat(distance);
+		tmpOutput.concat(F("]"));
+		outputln(tmpOutput);
 		return distance;
 	} else {
 		return 0;
@@ -1394,26 +1403,27 @@ double Decabot::measureDistance(){
 }
 
 void Decabot::objectDetection(bool forced){
-	//check if there is a sensor
-	if(bitRead(decabotConfiguration,0)){
+	//check if the ultrasonic sensor is installed
+	if(bitRead(decabotConfiguration,0)){ 
 		double hip = measureDistance(); //hipotenusa receives measured distance from ultrasonic
-		if(hip!=0){ //check if the ultrasonic sensor is installed
+		if(hip!=0){ 
 			if(!((hip>=lastDetection-1)&&(hip<=lastDetection+1))){ //removes noise from ultrasonic reading
 				int objX = (cos(radian(heading)) * hip) + xPos;
 				int objY = (sin(radian(heading)) * hip) + xPos;
-				String msg = "[obstacle][";
-				msg.concat(objX);
-				msg.concat("][");
-				msg.concat(objY);
-				msg.concat("][foundBy][");
-				msg.concat(decabotName);
-				msg.concat("][/]");
-				outputln(msg);
+				tmpOutput = F("[obstacle][");
+				tmpOutput.concat(objX);
+				tmpOutput.concat(F("]["));
+				tmpOutput.concat(objY);
+				tmpOutput.concat(F("][foundBy]["));
+				tmpOutput.concat(decabotName);
+				tmpOutput.concat(F("][/]"));
+				outputln(tmpOutput);
 				lastDetection = hip;
 			}
 		}
 	} else {
 		if(forced){
+			//forced means that a []program tryed to use the sensor 
 			outputln(F("[no distance sensor][/]"));
 		}
 	}
@@ -1422,10 +1432,10 @@ void Decabot::objectDetection(bool forced){
 void Decabot::codeScanObjectPrecision(int range){
 	//set from 1 to 5 the precision of scanning objects
 	objectDetectionDelay = map(range,1,5,1000,100);
-	String msg = F("[scan precision] level [");
-	msg.concat(range);
-	msg.concat(F("]"));
-	Serial.println(msg);
+	tmpOutput = F("[scan precision] level [");
+	tmpOutput.concat(range);
+	tmpOutput.concat(F("]"));
+	outputln(tmpOutput);
 }
 
 void Decabot::debug(){
