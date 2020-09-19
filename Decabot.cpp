@@ -108,6 +108,8 @@ void Decabot::boot(){
 	}
 	resetMotors();
 	whoAmI();
+	showPosition();
+	measureBattery();
 	soundBoot();
 	outputln(F("READY!"));
 	runCodeDominoSetup();
@@ -482,6 +484,7 @@ void Decabot::erase(int blockMemory){
 	EEPROM.update(blockMemory*64,'O'); //soft erase a program changing the 1st byte to a stop Code Domino command (O)
 	tmpOutput = F("[erased] memory block [");
 	tmpOutput.concat(blockMemory);
+	tmpOutput.concat("]");
 	outputln(tmpOutput);
 }
 

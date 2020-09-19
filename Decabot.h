@@ -214,11 +214,11 @@ class Decabot
 		float varP = 0;
 		float varQ = 0;
 		//Code Domino Loop variables
-		int varI = 5;
+		long varI = 5;
 		long lastMillisLoopOne = 0;
-		int varJ = 20;
+		long varJ = 20;
 		long lastMillisLoopTwo = 0;
-		int varK = 60;
+		long varK = 60;
 		long lastMillisLoopThree = 0;
 		//Face variables
 		int varA = 2;	//angry face
