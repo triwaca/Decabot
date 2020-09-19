@@ -1331,23 +1331,35 @@ void Decabot::update(){
 		if(millis()>(lastMillisLoopOne + (varI * 1000))){ //object detection doesn't work while moving, because the self position is not incremental
 			lastMillisLoopOne = millis();
 			if(infiniteCode(832)=='[') {
-				outputln(F("[loop1][/]"));
-				outputln(programName(832));
+				tmpOutput = F("[loop1][");
+				tmpOutput.concat(programName(832));
+				tmpOutput.concat(F("][/]"));
+				outputln(tmpOutput);
 				run(11,0);
 			}
 		}
 		//loop two
 		if(millis()>(lastMillisLoopTwo + (varJ * 1000))){
 			lastMillisLoopTwo = millis();
-			outputln(F("[loop2][/]"));
+			if(infiniteCode(896)=='[') {
+				tmpOutput = F("[loop2][");
+				tmpOutput.concat(programName(896));
+				tmpOutput.concat(F("][/]"));
+				outputln(tmpOutput);
+				run(12,0);
+			}
 			showPosition();
-			//run loop
 		}
 		//loop three
 		if(millis()>(lastMillisLoopThree + (varK * 1000))){
 			lastMillisLoopThree = millis();
-			outputln(F("[loop3][/]"));
-			//run loop
+			if(infiniteCode(960)=='[') {
+				tmpOutput = F("[loop3][");
+				tmpOutput.concat(programName(960));
+				tmpOutput.concat(F("][/]"));
+				outputln(tmpOutput);
+				run(12,0);
+			}
 		}
 	}
 	readButton();
