@@ -145,6 +145,16 @@ void Decabot::runCodeOnSerial(){
 	}
 }
 
+void Decabot::invertLeftMotor(){
+	leftMotorInverted = 1;
+	outputln("Left motor rotation inverted!");
+}
+
+void Decabot::invertRightMotor(){
+	rightMotorInverted = 1;
+	outputln("Right motor rotation inverted!");
+}
+
 int Decabot::readButton() {
 	if(!bitRead(decabotConfiguration,6)){ //check if has buttons (no Shield)
 		int buttonValue = analogRead(A0);
@@ -1282,12 +1292,12 @@ void Decabot::updateSteps(){
 		actualMillis = millis();
 		if(actualMillis - lastLeftMillis >= leftSpeed){
 			lastLeftMillis = actualMillis;
-			oneStepLeft(leftDirection);
+			oneStepLeft(leftDirection ^ rightMotorInverted);
 			if(turningLeft) stepsToMove--;
 		}
 		if(actualMillis - lastRightMillis >= rightSpeed){
 			lastRightMillis = actualMillis;
-			oneStepRight(rightDirection);
+			oneStepRight(rightDirection ^ leftMotorInverted);
 			if(!turningLeft) stepsToMove--;
 		}
 		if(!recording) adjustHeading();
