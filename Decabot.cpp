@@ -108,6 +108,7 @@ void Decabot::boot(){
 	}
 	resetMotors();
 	whoAmI();
+	Serial.println("AT+NAMEDECA_" + decabotName);
 	showPosition();
 	measureBattery();
 	soundBoot();
@@ -445,8 +446,10 @@ void Decabot::yourNameIs(String parameter){
 	EEPROM.update(i+902,'[');
 	EEPROM.update(i+903,'/');
 	EEPROM.update(i+904,']');
-	output(F("new name:"));
-	Serial.println(decabotName);
+	tmpOutput = F("new name:");
+	tmpOutput.concat(decabotName);
+	outputln(tmpOutput);
+	Serial.println("AT+NAMEDECA_" + decabotName);
 }
 
 void Decabot::yourOwnerIs(String parameter){
