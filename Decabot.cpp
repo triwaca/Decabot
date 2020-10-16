@@ -203,7 +203,7 @@ int Decabot::readButton() {
 void Decabot::executeButton(int button){
 	switch(button){
 		case 1:		//play button
-			run();
+			run(1);
 			break;
 		case 2:		//memory blocks 1 to 4
 			run(0,0);
@@ -321,7 +321,7 @@ void Decabot::injectRFID(String rfidData){
 				rfidData.toCharArray(inputRfidChar, rfidCodeSize);	//convert string to char
 				codeDomino(inputRfidChar);
 				rfidData = "";
-				run();
+				run(1);
 			} else {
 				// Ignore RFID data while running a Code Domino. 
 				// Must think about it, if it can pause the execution, run, and go back
@@ -808,10 +808,10 @@ void Decabot::saveCodeROM(int memoryBlock) {
 	*/
 }
 
-void Decabot::run(){
-	runningSounds = 1;
+void Decabot::run(bool soundsOn){
+	runningSounds = soundsOn;
 	if(infiniteCode(0)=='[') {
-		soundBegin();
+		if(soundsOn) soundBegin();
 		runningCodeIndex = 0;
 		codeMillisBegin = millis();
 		executing = 1;
@@ -953,7 +953,7 @@ void Decabot::codeInterpreter(char command, int parameter){
 		if(command=='Q') unknowCode();
 		if(command=='q') unknowCode();
 		if(command=='R') codeRight(parameter);		//turn right
-		if(command=='r') run();
+		if(command=='r') run(0);
 		if(command=='S') saveCodeROM(parameter);
 		if(command=='s') codeSpeed(parameter);		//set temporary motor speed
 		if(command=='T') unknowCode();

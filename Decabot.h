@@ -84,7 +84,7 @@ class Decabot
 		void update();
 		bool isCodeDominoChar(char command);
 		void codeDomino(char code[]);
-		void run();
+		void run(bool soundsOn);
 		void run(int blockMemory, bool soundsOn);
 		void runCodeDominoSetup();
 		void checkCodeDominoLoops();
