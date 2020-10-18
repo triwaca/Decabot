@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <EEPROM.h>
-#include <ArduinoUniqueID.h>
+//#include <ArduinoUniqueID.h>
 
 #define code_square "[square]X4FLYO"
 #define code_scan "[scan]L45u5Ru2L45O"
@@ -39,7 +39,7 @@ class Decabot
 	public:
 		//constructor		
 		Decabot(int delay, byte configuration);
-		~Decabot();
+		//~Decabot();
 		//basics
 		void boot();
 		void inputSerial(char dataSerial);
@@ -87,7 +87,7 @@ class Decabot
 		void run(bool soundsOn);
 		void run(int blockMemory, bool soundsOn);
 		void runCodeDominoSetup();
-		void checkCodeDominoLoops();
+		//void checkCodeDominoLoops();
 		void nextCommand();
 		char infiniteCode(int index);
 		void codeInterpreter(char command, int parameter);
@@ -152,22 +152,22 @@ class Decabot
 		6- Step motor drives on 7 to 13
 		7- PIR sensor on A2
 		*/
-		int sck = 13;		//SPI
-		int miso = 12;		//SPI
-		int mosi = 11;		//SPI
-		int sda = 10;		//SS_SDA pin MFRC522
-		int reset = 9;		//RST pin MFRC522
-		int latchPin = 8;	//Pin connected to ST_CP of 74HC595
-		int clockPin = 7;	//Pin connected to SH_CP of 74HC595
-		int dataPin = 6;	//Pin connected to DS of 74HC595
-		int trigPin = 5;	//Pin connected to HC-SR04 ultrasonic
-		int echoPin = 4;	//Pin connected to HC-SR04 ultrasonic
-		int buzzerPin = 3;	//Pin connected to buzzer
-		int ledPin = 2;		//Pin connected to frontal LED
-		int servoPin = 16;	//Pin connected to servo
-		int ledLatchPin = 16;	//Pin connected to Max7219 module CS
-		int ledClockPin = 4;	//Pin connected to Max7219 module CLK
-		int ledDataPin = 5;		//Pin connected to Max7219 module DIN
+		const int sck = 13;		//SPI
+		const int miso = 12;		//SPI
+		const int mosi = 11;		//SPI
+		const int sda = 10;		//SS_SDA pin MFRC522
+		const int reset = 9;		//RST pin MFRC522
+		const int latchPin = 8;	//Pin connected to ST_CP of 74HC595
+		const int clockPin = 7;	//Pin connected to SH_CP of 74HC595
+		const int dataPin = 6;	//Pin connected to DS of 74HC595
+		const int trigPin = 5;	//Pin connected to HC-SR04 ultrasonic
+		const int echoPin = 4;	//Pin connected to HC-SR04 ultrasonic
+		const int buzzerPin = 3;	//Pin connected to buzzer
+		const int ledPin = 2;		//Pin connected to frontal LED
+		const int servoPin = 16;	//Pin connected to servo
+		const int ledLatchPin = 16;	//Pin connected to Max7219 module CS
+		const int ledClockPin = 4;	//Pin connected to Max7219 module CLK
+		const int ledDataPin = 5;		//Pin connected to Max7219 module DIN
 		bool ledPinState = 0;
 		String decabotName = "A01  ";
 		String decabotOwner = "anybody@decabot.com";
@@ -246,7 +246,7 @@ class Decabot
 		//private moving functions
 		void updateSteps();
 		//private functions
-		void debug();
+		//void debug();
 		//private math
 		int poten(int base, int expoent);
 		float radian(float degree);
@@ -282,7 +282,7 @@ class Decabot
 			{B00000000,B00000000,B11111111}, //normal
 			{B00000000,B00111100,B01111110}, //sad
 		};
-		int decabotMusic[4][2]{
+		const int decabotMusic[4][2]{
 			{494,2},
 			{554,2},
 			{440,2},
